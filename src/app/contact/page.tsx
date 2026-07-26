@@ -28,7 +28,7 @@ export default function ContactPage() {
             <p className="section-kicker-dark">Primer paso sin costo</p>
             <h1 className="hero-heading mt-4 text-white">Antes de elegir un curso, conversemos.</h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/72 sm:text-lg sm:leading-8">
-              Esta conversación inicial puede durar hasta una hora. No es una clase de prueba: es un espacio para conocer sus objetivos, descubrir su nivel y recomendarle el camino adecuado.
+              Esta conversación inicial puede durar hasta una hora. Es un espacio para conocer sus objetivos, descubrir su nivel y recomendarle el camino adecuado.
             </p>
           </div>
         </div>
