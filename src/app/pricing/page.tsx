@@ -81,7 +81,7 @@ export default function PricingPage() {
         <div className="section-container">
           <MotionReveal className="mx-auto max-w-3xl text-center">
             <p className="section-kicker">Opciones de estudio</p>
-            <h2 className="section-heading mt-3">Invierta en una estructura que pueda sostener.</h2>
+            <h2 className="section-heading mt-3">Tres formas de avanzar a su manera.</h2>
             <p className="body-copy-lg mt-5">Antes de pagar, Alberto le ayudará a identificar la modalidad y el nivel adecuados para su situación.</p>
           </MotionReveal>
 
