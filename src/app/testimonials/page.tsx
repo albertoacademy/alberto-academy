@@ -145,7 +145,7 @@ function StoryGrid() {
           {testimonials.map((story, index) => {
             const initials = story.name.replaceAll(".", "").split(" ").map((part) => part[0]).join("");
             return (
-              <MotionArticle key={story.name} delay={index * 0.06} className="hover-lift relative isolate flex min-h-full flex-col overflow-hidden rounded-xl border border-brand-teal/24 bg-brand-navy p-5 text-white shadow-xl shadow-brand-navy/10 sm:p-7">
+              <MotionArticle key={story.name} delay={index * 0.06} className="testimonial-editorial-card relative isolate flex min-h-full flex-col overflow-hidden rounded-xl border border-brand-teal/30 bg-brand-navy p-5 text-white shadow-xl shadow-brand-navy/10 sm:p-7">
                 <div className="pointer-events-none absolute -right-16 -top-20 size-52 rounded-full border border-brand-teal/14" aria-hidden />
                 <span className="pointer-events-none absolute right-7 top-7 font-heading text-3xl font-normal text-brand-teal-light/24" aria-hidden>{String(index + 1).padStart(2, "0")}</span>
                 <span className="pointer-events-none absolute right-9 top-[5.4rem] size-2 rotate-45 border border-brand-red/70" aria-hidden />
