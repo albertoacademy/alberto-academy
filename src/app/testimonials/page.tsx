@@ -3,17 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  BriefcaseBusiness,
   CalendarCheck,
   CheckCircle2,
-  GraduationCap,
   HeartHandshake,
-  MessageCircle,
   Quote,
   ShieldCheck,
   Sparkles,
   Star,
-  Trophy,
 } from "lucide-react";
 import { CountUpStat } from "@/components/count-up-stat";
 import { MotionArticle, MotionImagePanel, MotionReveal } from "@/components/motion-reveal";
@@ -33,12 +29,12 @@ const pageStats = [
 ];
 
 const testimonials = [
-  { name: "Camila M.", role: "Operations coordinator", quote: "The lessons helped me stop guessing. I finally understand how to organize my ideas before I speak.", result: "More confident meetings", track: "Career English", icon: BriefcaseBusiness },
-  { name: "Luis A.", role: "University student", quote: "Alberto corrected me without making me feel nervous. That changed how I participate in class.", result: "Stronger class participation", track: "Live Speaking", icon: MessageCircle },
-  { name: "Paola R.", role: "Customer success specialist", quote: "The materials felt personal. I practiced exactly the English I needed for interviews and work calls.", result: "Interview readiness", track: "Professional Fluency", icon: Trophy },
-  { name: "Daniel P.", role: "University applicant", quote: "The lessons were practical and focused. My writing improved, but my speaking improved even faster.", result: "IELTS speaking band +1.5", track: "Academic English", icon: GraduationCap },
-  { name: "Mariana R.", role: "Marketing professional", quote: "I stopped translating in my head during meetings. Alberto helped me speak with structure and confidence.", result: "Promotion interview passed", track: "Career English", icon: BriefcaseBusiness },
-  { name: "Sofia L.", role: "High school student", quote: "I used to avoid speaking English. Now I participate more, ask questions, and enjoy class.", result: "Top grade in English", track: "Academic English", icon: GraduationCap },
+  { name: "Camila M.", role: "Operations coordinator", quote: "The lessons helped me stop guessing. I finally understand how to organize my ideas before I speak.", result: "More confident meetings", track: "Career English" },
+  { name: "Luis A.", role: "University student", quote: "Alberto corrected me without making me feel nervous. That changed how I participate in class.", result: "Stronger class participation", track: "Live Speaking" },
+  { name: "Paola R.", role: "Customer success specialist", quote: "The materials felt personal. I practiced exactly the English I needed for interviews and work calls.", result: "Interview readiness", track: "Professional Fluency" },
+  { name: "Daniel P.", role: "University applicant", quote: "The lessons were practical and focused. My writing improved, but my speaking improved even faster.", result: "IELTS speaking band +1.5", track: "Academic English" },
+  { name: "Mariana R.", role: "Marketing professional", quote: "I stopped translating in my head during meetings. Alberto helped me speak with structure and confidence.", result: "Promotion interview passed", track: "Career English" },
+  { name: "Sofia L.", role: "High school student", quote: "I used to avoid speaking English. Now I participate more, ask questions, and enjoy class.", result: "Top grade in English", track: "Academic English" },
 ];
 
 const outcomes = [
@@ -147,13 +143,38 @@ function StoryGrid() {
         <MotionReveal className="mx-auto max-w-3xl text-center"><p className="section-kicker">More Student Stories</p><h2 className="section-heading mt-3">Different goals, same focused method.</h2></MotionReveal>
         <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {testimonials.map((story, index) => {
-            const Icon = story.icon;
+            const initials = story.name.replaceAll(".", "").split(" ").map((part) => part[0]).join("");
             return (
-              <MotionArticle key={story.name} delay={index * 0.06} className="hover-lift rounded-xl border border-brand-blue/14 bg-brand-blue p-5 text-white shadow-xl shadow-brand-navy/8 sm:p-6">
-                <div className="flex items-start justify-between gap-4"><span className="grid size-11 shrink-0 place-items-center rounded-lg bg-brand-teal text-white"><Icon size={21} strokeWidth={1.8} aria-hidden /></span><span className="rounded-md bg-white/12 px-3 py-2 text-xs font-extrabold uppercase tracking-[0.08em] text-white/72">{story.track}</span></div>
-                <Quote className="mt-7 text-brand-teal-light" size={24} aria-hidden />
-                <p className="mt-3 text-sm leading-6 text-white/84 md:min-h-[6rem]">{story.quote}</p>
-                <div className="mt-5 border-t border-white/16 pt-5"><p className="font-heading text-xl font-normal">{story.name}</p><p className="mt-1 text-sm text-white/58">{story.role}</p><p className="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-red px-3 py-2 text-xs font-extrabold text-white"><Star size={14} fill="currentColor" aria-hidden />{story.result}</p></div>
+              <MotionArticle key={story.name} delay={index * 0.06} className="hover-lift relative isolate flex min-h-full flex-col overflow-hidden rounded-xl border border-brand-teal/24 bg-brand-navy p-5 text-white shadow-xl shadow-brand-navy/10 sm:p-7">
+                <div className="pointer-events-none absolute -right-16 -top-20 size-52 rounded-full border border-brand-teal/14" aria-hidden />
+                <span className="pointer-events-none absolute right-7 top-7 font-heading text-3xl font-normal text-brand-teal-light/24" aria-hidden>{String(index + 1).padStart(2, "0")}</span>
+                <span className="pointer-events-none absolute right-9 top-[5.4rem] size-2 rotate-45 border border-brand-red/70" aria-hidden />
+
+                <p className="relative z-10 max-w-[72%] text-xs font-extrabold uppercase tracking-[0.14em] text-brand-teal-light">{story.track}</p>
+
+                <div className="relative z-10 mt-10 grid size-12 place-items-center rounded-md border border-brand-teal/28 bg-white/[0.04] text-brand-teal-light sm:mt-12">
+                  <Quote size={23} strokeWidth={1.7} aria-hidden />
+                </div>
+
+                <blockquote className="relative z-10 mt-7 flex-1">
+                  <p className="font-heading text-[1.42rem] font-normal leading-[1.42] text-white sm:text-[1.55rem]">&ldquo;{story.quote}&rdquo;</p>
+                </blockquote>
+
+                <div className="relative z-10 mt-8 border-t border-brand-teal/20 pt-5">
+                  <div className="flex flex-col gap-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="grid size-12 shrink-0 place-items-center rounded-md border border-brand-teal/28 bg-white/[0.04] font-heading text-sm text-brand-teal-light">{initials}</span>
+                      <div className="min-w-0">
+                        <p className="font-heading text-xl font-normal">{story.name}</p>
+                        <p className="mt-1 text-[0.68rem] font-bold uppercase tracking-[0.1em] text-white/48">{story.role}</p>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 gap-1 text-brand-teal-light" aria-label="Five star testimonial">
+                      {Array.from({ length: 5 }).map((_, starIndex) => <Star key={starIndex} size={14} fill="currentColor" strokeWidth={1.5} aria-hidden />)}
+                    </div>
+                  </div>
+                  <p className="mt-5 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.08em] text-white/68"><Sparkles size={14} className="shrink-0 text-brand-red" aria-hidden />{story.result}</p>
+                </div>
               </MotionArticle>
             );
           })}
