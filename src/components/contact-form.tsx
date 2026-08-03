@@ -53,7 +53,7 @@ export function ContactForm({ locale = "es" }: { locale?: Locale }) {
   }
 
   return (
-    <form className="bg-brand-navy px-6 py-10 text-white sm:px-10 sm:py-12 lg:px-20 lg:py-16" onSubmit={handleSubmit} aria-label={isEnglish ? "Free consultation request form" : "Formulario para solicitar la conversación inicial"}>
+    <form className="order-1 bg-brand-navy px-6 py-10 text-white sm:px-10 sm:py-12 lg:order-2 lg:px-20 lg:py-16" onSubmit={handleSubmit} aria-label={isEnglish ? "Free consultation request form" : "Formulario para solicitar la conversación inicial"}>
       <div className="mx-auto flex h-full max-w-2xl flex-col justify-center gap-7 sm:gap-8 lg:gap-10">
         <label className="contact-line-field">{isEnglish ? "Full name" : "Nombre completo"}<input type="text" name="name" value={name} onChange={(event) => setName(event.target.value)} required /></label>
         <label className="contact-line-field">{isEnglish ? "Email address" : "Correo electrónico"}<input type="email" name="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>

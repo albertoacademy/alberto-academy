@@ -68,7 +68,7 @@ export default async function ContactPage() {
 
       <section id="booking" className="bg-surface-cream px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
         <div className="mx-auto grid max-w-7xl overflow-hidden rounded-xl shadow-2xl shadow-brand-navy/12 lg:grid-cols-2">
-          <div className="relative isolate overflow-hidden bg-brand-blue px-6 py-10 text-white sm:px-10 sm:py-12 lg:px-20 lg:py-16">
+          <div className="order-2 relative isolate overflow-hidden bg-brand-blue px-6 py-10 text-white sm:px-10 sm:py-12 lg:order-1 lg:px-20 lg:py-16">
             <Image src="/images/contact-expectations-bg.webp" alt="" fill quality={72} sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-center opacity-[0.18]" /><div className="contact-image-wash absolute inset-0" />
             <div className="relative z-10 flex max-w-xl flex-col justify-between lg:min-h-[560px]">
               <div><p className="section-kicker-dark">{copy.expectationKicker}</p><h2 className="mt-4 font-heading text-3xl font-normal leading-tight text-white sm:text-4xl lg:text-5xl">{copy.expectationTitle}</h2>
