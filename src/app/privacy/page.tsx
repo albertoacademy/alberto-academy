@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import { ClipboardCheck, Database, LockKeyhole, MailCheck, ShieldCheck, UserCheck } from "lucide-react";
 import { LegalPage } from "@/components/legal-page";
-import { localeAlternates } from "@/lib/i18n";
 import { getRequestLocale } from "@/lib/i18n-server";
+import { createLocalizedMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  return locale === "en" ? { title: "Privacy Policy | Alberto Academy", description: "How Alberto Academy collects, uses, and protects information shared by students and prospective learners.", alternates: localeAlternates(locale, "/privacy") } : { title: "Política de privacidad | Alberto Academy", description: "Cómo Alberto Academy recopila, utiliza y protege la información compartida por estudiantes y personas interesadas.", alternates: localeAlternates(locale, "/privacy") };
+  return createLocalizedMetadata({
+    locale,
+    path: "/privacy",
+    ...(locale === "en"
+      ? { title: "Privacy Policy | Alberto Academy", description: "How Alberto Academy collects, uses, and protects information shared by students and prospective learners." }
+      : { title: "Política de privacidad | Alberto Academy", description: "Cómo Alberto Academy recopila, utiliza y protege la información compartida por estudiantes y personas interesadas." }),
+  });
 }
 
 const sections = {

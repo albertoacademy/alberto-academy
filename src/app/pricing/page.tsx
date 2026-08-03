@@ -3,12 +3,19 @@ import Link from "next/link";
 import { ArrowRight, Award, CalendarCheck, CheckCircle2, Clock3, CreditCard, GraduationCap, Laptop, MessageCircle, ShieldCheck, Target } from "lucide-react";
 import { MotionArticle, MotionReveal } from "@/components/motion-reveal";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
-import { localeAlternates, localePath } from "@/lib/i18n";
+import { localePath } from "@/lib/i18n";
 import { getRequestLocale } from "@/lib/i18n-server";
+import { createLocalizedMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  return locale === "en" ? { title: "Pricing | Alberto Academy", description: "Compare pricing for private Spanish lessons, group classes, and personalized tutoring, including the first-month discount.", alternates: localeAlternates(locale, "/pricing") } : { title: "Precios | Alberto Academy", description: "Conozca los precios reales de las clases privadas, grupales y tutorías de Alberto Academy, además del descuento del primer mes.", alternates: localeAlternates(locale, "/pricing") };
+  return createLocalizedMetadata({
+    locale,
+    path: "/pricing",
+    ...(locale === "en"
+      ? { title: "Pricing | Alberto Academy", description: "Compare pricing for private Spanish lessons, group classes, and personalized tutoring, including the first-month discount." }
+      : { title: "Precios | Alberto Academy", description: "Conozca los precios reales de las clases privadas, grupales y tutorías de Alberto Academy, además del descuento del primer mes." }),
+  });
 }
 
 const pricingCopy = {

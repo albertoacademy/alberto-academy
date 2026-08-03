@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import { CalendarClock, CreditCard, FileCheck2, GraduationCap, RefreshCcw, Scale } from "lucide-react";
 import { LegalPage } from "@/components/legal-page";
-import { localeAlternates } from "@/lib/i18n";
 import { getRequestLocale } from "@/lib/i18n-server";
+import { createLocalizedMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  return locale === "en" ? { title: "Terms of Service | Alberto Academy", description: "Terms covering online lessons, schedules, payments, learning materials, and student responsibilities.", alternates: localeAlternates(locale, "/terms") } : { title: "Términos del servicio | Alberto Academy", description: "Términos sobre clases online, horarios, pagos, materiales y responsabilidades de estudiantes de Alberto Academy.", alternates: localeAlternates(locale, "/terms") };
+  return createLocalizedMetadata({
+    locale,
+    path: "/terms",
+    ...(locale === "en"
+      ? { title: "Terms of Service | Alberto Academy", description: "Terms covering online lessons, schedules, payments, learning materials, and student responsibilities." }
+      : { title: "Términos del servicio | Alberto Academy", description: "Términos sobre clases online, horarios, pagos, materiales y responsabilidades de estudiantes de Alberto Academy." }),
+  });
 }
 
 const sections = {

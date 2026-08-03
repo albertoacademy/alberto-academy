@@ -24,7 +24,7 @@ export function LanguageToggle({ locale }: { locale: Locale }) {
       type="button"
       onClick={switchLanguage}
       className="inline-flex h-10 min-w-10 items-center justify-center rounded-md border border-brand-navy/12 px-2.5 text-xs font-extrabold uppercase text-brand-navy transition hover:border-brand-teal hover:text-brand-blue"
-      aria-label={locale === "es" ? "View website in English" : "Ver el sitio en español"}
+      aria-label={locale === "es" ? "Ver el sitio en inglés" : "View website in Spanish"}
       title={locale === "es" ? "English" : "Español"}
     >
       {nextLocale.toUpperCase()}

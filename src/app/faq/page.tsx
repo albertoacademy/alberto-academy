@@ -5,20 +5,19 @@ import { GroupedFAQAccordion } from "@/components/faq-accordion";
 import { MotionReveal } from "@/components/motion-reveal";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { allFaqs, allFaqsEn } from "@/lib/faqs";
-import { localeAlternates, localePath } from "@/lib/i18n";
+import { localePath } from "@/lib/i18n";
 import { getRequestLocale } from "@/lib/i18n-server";
+import { createLocalizedMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  return locale === "en" ? {
-    title: "Frequently Asked Questions | Alberto Academy",
-    description: "Clear answers about online Spanish lessons, schedules, materials, levels, and expected progress.",
-    alternates: localeAlternates(locale, "/faq"),
-  } : {
-    title: "Preguntas frecuentes | Alberto Academy",
-    description: "Respuestas claras sobre clases online, niveles, horarios, materiales, progreso y la conversación inicial de Alberto Academy.",
-    alternates: localeAlternates(locale, "/faq"),
-  };
+  return createLocalizedMetadata({
+    locale,
+    path: "/faq",
+    ...(locale === "en"
+      ? { title: "Frequently Asked Questions | Alberto Academy", description: "Clear answers about online Spanish lessons, schedules, materials, levels, and expected progress." }
+      : { title: "Preguntas frecuentes | Alberto Academy", description: "Respuestas claras sobre clases online, niveles, horarios, materiales, progreso y la conversación inicial de Alberto Academy." }),
+  });
 }
 
 export default async function FAQPage() {

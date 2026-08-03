@@ -6,13 +6,20 @@ import { MotionArticle, MotionImagePanel, MotionReveal } from "@/components/moti
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { homepageFaqs, homepageFaqsEn } from "@/lib/faqs";
 import { programTracks, programTracksEn } from "@/lib/programs";
-import { localeAlternates, localePath, type Locale } from "@/lib/i18n";
+import { localePath, type Locale } from "@/lib/i18n";
 import { getRequestLocale } from "@/lib/i18n-server";
+import { createLocalizedMetadata } from "@/lib/metadata";
 import { ArrowRight, CalendarCheck, CheckCircle2, ChevronRight, Compass, GraduationCap, Languages, MessagesSquare, Quote, ShieldCheck, Star, Target, Users } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  return locale === "en" ? { title: "Alberto Academy | Learn Spanish for Real Life", description: "Practical online Spanish lessons for travel, work, relocation, and everyday conversation, guided by Alberto A. Sosa.", alternates: localeAlternates(locale, "/") } : { title: "Alberto Academy | Inglés online para hablar con seguridad", description: "Academia de idiomas online dirigida por Alberto A. Sosa. Clases de inglés por niveles, privadas y grupales, con conversación inicial gratuita.", alternates: localeAlternates(locale, "/") };
+  return createLocalizedMetadata({
+    locale,
+    path: "/",
+    ...(locale === "en"
+      ? { title: "Alberto Academy | Learn Spanish for Real Life", description: "Practical online Spanish lessons for travel, work, relocation, and everyday conversation, guided by Alberto A. Sosa." }
+      : { title: "Alberto Academy | Inglés online para hablar con seguridad", description: "Academia de idiomas online dirigida por Alberto A. Sosa. Clases de inglés por niveles, privadas y grupales, con conversación inicial gratuita." }),
+  });
 }
 
 const programIcons = [MessagesSquare, Users, Languages];

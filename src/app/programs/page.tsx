@@ -6,12 +6,19 @@ import { MotionImagePanel, MotionReveal } from "@/components/motion-reveal";
 import { ComplementaryProgramsScroller } from "@/components/complementary-programs-scroller";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { programTracks, programTracksEn } from "@/lib/programs";
-import { localeAlternates, localePath, type Locale } from "@/lib/i18n";
+import { localePath, type Locale } from "@/lib/i18n";
 import { getRequestLocale } from "@/lib/i18n-server";
+import { createLocalizedMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  return locale === "en" ? { title: "Spanish Programs | Alberto Academy", description: "Explore private and group Spanish lessons, level-based programs, tutoring, real-world coaching, and available English instruction.", alternates: localeAlternates(locale, "/programs") } : { title: "Programas de idiomas | Alberto Academy", description: "Programas por niveles, clases individuales y grupales, tutorías, coaching especializado y español para extranjeros.", alternates: localeAlternates(locale, "/programs") };
+  return createLocalizedMetadata({
+    locale,
+    path: "/programs",
+    ...(locale === "en"
+      ? { title: "Spanish Programs | Alberto Academy", description: "Explore private and group Spanish lessons, level-based programs, tutoring, real-world coaching, and available English instruction." }
+      : { title: "Programas de idiomas | Alberto Academy", description: "Programas por niveles, clases individuales y grupales, tutorías, coaching especializado y español para extranjeros." }),
+  });
 }
 
 const serviceIcons = { "clases-individuales": MessageCircle, "clases-grupales": Users, "espanol-para-extranjeros": Languages };

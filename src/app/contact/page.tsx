@@ -3,20 +3,18 @@ import Image from "next/image";
 import { ContactForm } from "@/components/contact-form";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { CalendarCheck, CheckCircle2, Clock3, Mail, MessageCircle, MessageSquareText, MonitorPlay } from "lucide-react";
-import { localeAlternates } from "@/lib/i18n";
 import { getRequestLocale } from "@/lib/i18n-server";
+import { createLocalizedMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  return locale === "en" ? {
-    title: "Contact | Alberto Academy",
-    description: "Request a free consultation to discuss your Spanish goals, starting level, and the right learning path.",
-    alternates: localeAlternates(locale, "/contact"),
-  } : {
-    title: "Contacto | Alberto Academy",
-    description: "Solicite una conversación inicial gratuita para revisar sus objetivos, descubrir su nivel y encontrar el programa adecuado.",
-    alternates: localeAlternates(locale, "/contact"),
-  };
+  return createLocalizedMetadata({
+    locale,
+    path: "/contact",
+    ...(locale === "en"
+      ? { title: "Contact | Alberto Academy", description: "Request a free consultation to discuss your Spanish goals, starting level, and the right learning path." }
+      : { title: "Contacto | Alberto Academy", description: "Solicite una conversación inicial gratuita para revisar sus objetivos, descubrir su nivel y encontrar el programa adecuado." }),
+  });
 }
 
 const content = {

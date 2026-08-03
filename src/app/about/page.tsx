@@ -5,12 +5,19 @@ import { ArrowRight, BookOpenCheck, CalendarCheck, CheckCircle2, Compass, Gradua
 import { CountUpStat } from "@/components/count-up-stat";
 import { MotionArticle, MotionImagePanel, MotionReveal } from "@/components/motion-reveal";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
-import { localeAlternates, localePath, type Locale } from "@/lib/i18n";
+import { localePath, type Locale } from "@/lib/i18n";
 import { getRequestLocale } from "@/lib/i18n-server";
+import { createLocalizedMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  return locale === "en" ? { title: "About Alberto | Alberto Academy", description: "Meet Alberto A. Sosa, a Modern Languages graduate with more than 400 students taught and a practical method for learning Spanish.", alternates: localeAlternates(locale, "/about") } : { title: "Sobre Alberto | Alberto Academy", description: "Conozca a Alberto A. Sosa, licenciado en Lenguas Modernas, su experiencia con más de 400 estudiantes y su método directo para enseñar idiomas.", alternates: localeAlternates(locale, "/about") };
+  return createLocalizedMetadata({
+    locale,
+    path: "/about",
+    ...(locale === "en"
+      ? { title: "About Alberto | Alberto Academy", description: "Meet Alberto A. Sosa, a Modern Languages graduate with more than 400 students taught and a practical method for learning Spanish." }
+      : { title: "Sobre Alberto | Alberto Academy", description: "Conozca a Alberto A. Sosa, licenciado en Lenguas Modernas, su experiencia con más de 400 estudiantes y su método directo para enseñar idiomas." }),
+  });
 }
 
 const copy = {

@@ -5,12 +5,19 @@ import { ArrowRight, CalendarCheck, CheckCircle2, HeartHandshake, Quote, ShieldC
 import { CountUpStat } from "@/components/count-up-stat";
 import { MotionArticle, MotionImagePanel, MotionReveal } from "@/components/motion-reveal";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
-import { localeAlternates, localePath, type Locale } from "@/lib/i18n";
+import { localePath, type Locale } from "@/lib/i18n";
 import { getRequestLocale } from "@/lib/i18n-server";
+import { createLocalizedMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  return locale === "en" ? { title: "Student Results | Alberto Academy", description: "See how Alberto's students build confidence, clearer communication, and practical language skills, then explore Spanish lessons designed for real life.", alternates: localeAlternates(locale, "/testimonials") } : { title: "Testimonials | Alberto Academy", description: "Read student success stories from Alberto Academy, including confidence gains, academic progress, and career-ready English outcomes.", alternates: localeAlternates(locale, "/testimonials") };
+  return createLocalizedMetadata({
+    locale,
+    path: "/testimonials",
+    ...(locale === "en"
+      ? { title: "Student Results | Alberto Academy", description: "See how Alberto's students build confidence, clearer communication, and practical language skills, then explore Spanish lessons designed for real life." }
+      : { title: "Testimonials | Alberto Academy", description: "Read student success stories from Alberto Academy, including confidence gains, academic progress, and career-ready English outcomes." }),
+  });
 }
 
 const pageCopy = {

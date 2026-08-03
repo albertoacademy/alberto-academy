@@ -16,7 +16,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://albertoacademy.com"),
+  metadataBase: new URL("https://www.albertoacademy.com"),
   title: "Alberto Academy | Inglés online para hablar con seguridad",
   description:
     "Academia de idiomas online dirigida por Alberto A. Sosa. Clases de inglés por niveles, privadas y grupales, con conversación inicial gratuita.",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     title: "Alberto Academy | Hable Inglés con Confianza",
     description:
       "Aprenda inglés de forma progresiva, practique conversaciones reales y gane seguridad con una guía profesional.",
-    url: "https://albertoacademy.com",
+    url: "https://www.albertoacademy.com",
     siteName: "Alberto Academy",
     images: [
       {
