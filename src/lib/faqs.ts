@@ -1,7 +1,7 @@
 export type FAQItem = {
   question: string;
   answer: string;
-  category: "Clases" | "Materiales" | "Horarios" | "Progreso";
+  category: string;
 };
 
 export const allFaqs: FAQItem[] = [
@@ -92,3 +92,78 @@ export const allFaqs: FAQItem[] = [
 ];
 
 export const homepageFaqs = allFaqs.slice(0, 4);
+
+export const allFaqsEn: FAQItem[] = [
+  {
+    question: "Are lessons online or in person?",
+    answer: "All lessons are currently online. Alberto Academy uses Google Meet for live sessions, Google Classroom for learning support, and WhatsApp for communication.",
+    category: "Lessons",
+  },
+  {
+    question: "How long is each lesson?",
+    answer: "Private lessons last one to two hours, depending on your plan. Group lessons last two hours and meet twice per week.",
+    category: "Schedule",
+  },
+  {
+    question: "Do I need to know my Spanish level before I start?",
+    answer: "No. Alberto will discuss your experience and goals during the free consultation. If you want a more complete assessment, an optional reading, grammar, listening, and language-use evaluation is available.",
+    category: "Progress",
+  },
+  {
+    question: "What happens if I miss a lesson?",
+    answer: "Every absence is recorded. Students are expected to maintain at least 75% attendance to complete a program successfully. You can discuss exceptional circumstances directly with Alberto.",
+    category: "Schedule",
+  },
+  {
+    question: "Can I change my schedule?",
+    answer: "Yes, when availability allows. Group students may move when another group is at a similar level and unit. Private-lesson changes depend on the schedule agreed with Alberto.",
+    category: "Schedule",
+  },
+  {
+    question: "Are group Spanish lessons available?",
+    answer: "Yes. Groups are organized by level and meet twice per week for two hours per session.",
+    category: "Lessons",
+  },
+  {
+    question: "Does Alberto teach children or only adults?",
+    answer: "Alberto has taught students from age nine through adulthood. The primary focus is adults, university students, and professionals, though children and teenagers may be accepted based on their needs.",
+    category: "Lessons",
+  },
+  {
+    question: "Can lessons focus on travel, work, or life in a Spanish-speaking country?",
+    answer: "Yes. Your sessions can focus on travel, workplace communication, relocation, everyday conversation, pronunciation, writing, or another practical situation where you need Spanish.",
+    category: "Lessons",
+  },
+  {
+    question: "Are learning materials included?",
+    answer: "Lessons may use books, PDFs, videos, audio, presentations, and interactive exercises. Downloadable resources are provided when appropriate; paid books or core materials are quoted before enrollment.",
+    category: "Materials",
+  },
+  {
+    question: "Will I receive homework?",
+    answer: "Only when it supports the lesson goal. Activities may include exercises, short projects, presentations, or individual and small-group practice.",
+    category: "Materials",
+  },
+  {
+    question: "When should I expect to notice progress?",
+    answer: "The first level generally takes three to six months. Progress depends on attendance, practice, and consistency, so Alberto Academy does not make unrealistic fluency promises.",
+    category: "Progress",
+  },
+  {
+    question: "Can I pause my plan?",
+    answer: "Yes. Pauses should be coordinated with Alberto Academy so payment, availability, and the best point for returning can be reviewed.",
+    category: "Schedule",
+  },
+  {
+    question: "What do I need for online lessons?",
+    answer: "You need a smartphone or computer, a stable internet connection, a microphone, and a place where you can participate actively.",
+    category: "Lessons",
+  },
+  {
+    question: "Is the free consultation a trial lesson?",
+    answer: "No. Alberto Academy does not offer trial lessons. The free consultation can last up to one hour and is used to understand your goals, identify your starting level, and recommend the right path.",
+    category: "Progress",
+  },
+];
+
+export const homepageFaqsEn = allFaqsEn.slice(0, 4);

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import { getRequestLocale } from "@/lib/i18n-server";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -53,13 +54,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getRequestLocale();
+
   return (
-    <html lang="es" className={`${inter.variable} ${playfair.variable} scroll-smooth`}>
+    <html lang={locale} className={`${inter.variable} ${playfair.variable} scroll-smooth`}>
       <body>{children}</body>
     </html>
   );

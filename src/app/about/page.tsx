@@ -5,200 +5,83 @@ import { ArrowRight, BookOpenCheck, CalendarCheck, CheckCircle2, Compass, Gradua
 import { CountUpStat } from "@/components/count-up-stat";
 import { MotionArticle, MotionImagePanel, MotionReveal } from "@/components/motion-reveal";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
+import { localeAlternates, localePath, type Locale } from "@/lib/i18n";
+import { getRequestLocale } from "@/lib/i18n-server";
 
-export const metadata: Metadata = {
-  title: "Sobre Alberto | Alberto Academy",
-  description: "Conozca a Alberto A. Sosa, licenciado en Lenguas Modernas, su experiencia con más de 400 estudiantes y su método directo para enseñar idiomas.",
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
+  return locale === "en" ? { title: "About Alberto | Alberto Academy", description: "Meet Alberto A. Sosa, a Modern Languages graduate with more than 400 students taught and a practical method for learning Spanish.", alternates: localeAlternates(locale, "/about") } : { title: "Sobre Alberto | Alberto Academy", description: "Conozca a Alberto A. Sosa, licenciado en Lenguas Modernas, su experiencia con más de 400 estudiantes y su método directo para enseñar idiomas.", alternates: localeAlternates(locale, "/about") };
+}
+
+const copy = {
+  es: {
+    heroKicker: "Sobre Alberto Academy", heroTitle: "Una academia online con método, cercanía y un profesor al frente.", heroBody: "Alberto Academy nace de una realidad sencilla: muchas personas quieren aprender, pero no pueden ajustarse a la enseñanza presencial o siguen estudiando sin sentirse capaces de conversar.", heroPrimary: "Conversar con Alberto", heroSecondary: "Explorar programas", heroAlt: "Estudiante participando en una clase online de Alberto Academy",
+    introImageAlt: "Alberto A. Sosa, fundador y profesor de Alberto Academy", introImageKicker: "República Dominicana", introImageTitle: "Licenciado en Lenguas Modernas", introKicker: "Alberto A. Sosa", introTitle: "Experiencia académica puesta al servicio de una comunicación real.", introParagraphs: ["Alberto es licenciado en Lenguas Modernas y cuenta con más de cuatro años de experiencia docente. Ha enseñado a más de 400 estudiantes, desde los 9 años hasta la adultez.", "Su trayectoria incluye el Colegio O&M Hostos School, Impact Language Institute y el O&M English Program. Actualmente enseña en Impact Language Institute y en el programa de inglés de O&M.", "Decidió crear Alberto Academy para que más personas puedan estudiar desde cualquier lugar, con una formación seria y flexible que no dependa de asistir físicamente a un aula."], badges: ["Licenciatura en Lenguas Modernas", "Diploma de Inglés por Inmersión", "Formación en Impact Language Institute", "Método directo"],
+    stats: [{ value: "4+", label: "Años de experiencia" }, { value: "400+", label: "Estudiantes enseñados" }, { value: "4", label: "Niveles de formación" }],
+    methodKicker: "Cómo enseña Alberto", methodTitle: "Una clase para comprender, practicar y utilizar el idioma.", methodBody: "La traducción se utiliza solo como apoyo. La mayor parte de la clase invita al estudiante a comprender, asociar, responder y utilizar el idioma.", values: [
+      { title: "Claridad mediante el contexto", copy: "Las palabras y estructuras se explican con comparaciones, sinónimos, antónimos e imágenes para facilitar una comprensión útil.", icon: Compass },
+      { title: "Confianza mediante la práctica", copy: "La clase es interactiva, relajada y objetiva. El estudiante conversa, lee, practica y utiliza el idioma desde el inicio.", icon: MessagesSquare },
+      { title: "Corrección con respeto", copy: "Alberto guía al estudiante para que reconozca el error y lo corrija sin sentirse expuesto o desmotivado.", icon: Trophy },
+      { title: "Progreso que puede observarse", copy: "La comprensión, la fluidez y el desempeño se revisan cada dos unidades mediante práctica y evaluaciones.", icon: LineChart },
+    ],
+    journeyKicker: "Trayectoria", journeyTitle: "De estudiante constante a profesor de tres entornos educativos.", journey: [
+      { year: "2018", title: "Inicio en Lenguas Modernas", copy: "Alberto comenzó su formación universitaria en la Universidad Dominicana O&M." },
+      { year: "2019", title: "Programa de Inglés por Inmersión", copy: "Completó el programa de inmersión y continuó fortaleciendo el idioma mediante lectura y estudio independiente." },
+      { year: "2022", title: "Primeros pasos como docente", copy: "Comenzó a enseñar en el Colegio O&M Hostos School y retomó sus estudios universitarios." },
+      { year: "2023", title: "Impact Language Institute", copy: "Se formó en su metodología de enseñanza y pasó a formar parte del equipo docente del instituto." },
+      { year: "2024", title: "O&M English Program", copy: "Se incorporó al programa de inglés de O&M y obtuvo su licenciatura en Lenguas Modernas en diciembre." },
+    ], journeyAlt: "Alberto preparando materiales para sus clases de idiomas", journeyBadge: "Experiencia actual", journeyPlace: "Impact Language Institute y O&M English Program",
+    finalKicker: "La misión", finalTitle: "Ayudarle a construir una voz más segura en otro idioma.", finalBody: "Con enseñanza progresiva, conversación contextual y seguimiento honesto, Alberto Academy busca convertir el estudio en una habilidad que usted pueda utilizar.", finalNote: "Comience con una conversación gratuita para conocer su nivel, sus objetivos y la ruta más conveniente.", finalPrimary: "Conversar con Alberto", finalSecondary: "Ver programas",
+  },
+  en: {
+    heroKicker: "About Alberto Academy", heroTitle: "Language lessons with structure, warmth, and a real teacher behind them.", heroBody: "Alberto Academy was built for people who want Spanish to become part of their real life, even when traditional classrooms do not fit their schedule or learning style.", heroPrimary: "Talk With Alberto", heroSecondary: "Explore Programs", heroAlt: "Student joining an online Spanish lesson with Alberto Academy",
+    introImageAlt: "Alberto A. Sosa, founder and language teacher at Alberto Academy", introImageKicker: "Dominican Republic", introImageTitle: "Modern Languages Graduate", introKicker: "Alberto A. Sosa", introTitle: "Academic training translated into practical, human instruction.", introParagraphs: ["Alberto holds a degree in Modern Languages and has more than four years of teaching experience. He has taught over 400 students, from age nine through adulthood.", "His experience includes O&M Hostos School, Impact Language Institute, and the O&M English Program. He currently teaches at Impact Language Institute and in O&M's English program.", "He created Alberto Academy so learners can study from anywhere with serious, flexible instruction. For English speakers, that means learning Spanish with a teacher who understands both languages and the cultural context behind them."], badges: ["Degree in Modern Languages", "English Immersion Diploma", "Impact Language Institute Training", "Direct Method"],
+    stats: [{ value: "4+", label: "Years of experience" }, { value: "400+", label: "Students taught" }, { value: "4", label: "Learning levels" }],
+    methodKicker: "How Alberto teaches", methodTitle: "Understand Spanish, practice it, then use it.", methodBody: "Translation is used only when it helps. Most of the lesson keeps you connecting meaning, responding, and using Spanish in context.", values: [
+      { title: "Clarity through context", copy: "Words and structures are explained through comparisons, synonyms, antonyms, images, and situations that make meaning easier to remember.", icon: Compass },
+      { title: "Confidence through use", copy: "Lessons are interactive, relaxed, and purposeful. You speak, read, respond, and use Spanish from the beginning.", icon: MessagesSquare },
+      { title: "Respectful correction", copy: "Alberto helps you notice and correct mistakes without making you feel exposed or discouraged.", icon: Trophy },
+      { title: "Progress you can see", copy: "Comprehension, fluency, and performance are reviewed every two units through practice and assessment.", icon: LineChart },
+    ],
+    journeyKicker: "Alberto's journey", journeyTitle: "From committed language learner to teacher across three educational settings.", journey: [
+      { year: "2018", title: "Modern Languages studies", copy: "Alberto began his university training at Universidad Dominicana O&M." },
+      { year: "2019", title: "English Immersion Program", copy: "He completed the immersion program and continued strengthening his language skills through reading and independent study." },
+      { year: "2022", title: "First teaching role", copy: "He began teaching at O&M Hostos School while continuing his university studies." },
+      { year: "2023", title: "Impact Language Institute", copy: "He trained in the institute's teaching methodology and joined its faculty." },
+      { year: "2024", title: "O&M English Program", copy: "He joined O&M's English program and earned his Modern Languages degree in December." },
+    ], journeyAlt: "Alberto preparing materials for his language lessons", journeyBadge: "Current experience", journeyPlace: "Impact Language Institute and O&M English Program",
+    finalKicker: "The mission", finalTitle: "Help you build a confident voice in another language.", finalBody: "Through progressive instruction, contextual conversation, and honest guidance, Alberto Academy turns studying into a skill you can use in real life.", finalNote: "Begin with a free consultation to identify your level, goals, and the most useful Spanish-learning path.", finalPrimary: "Talk With Alberto", finalSecondary: "View Programs",
+  },
 };
 
-const academyStats = [
-  { value: "4+", label: "Años de experiencia" },
-  { value: "400+", label: "Estudiantes enseñados" },
-  { value: "4", label: "Niveles de formación" },
-];
-
-const values = [
-  { title: "Claridad mediante el contexto", copy: "Las palabras y estructuras se explican con comparaciones, sinónimos, antónimos e imágenes para facilitar una comprensión útil.", icon: Compass },
-  { title: "Confianza mediante la práctica", copy: "La clase es interactiva, relajada y objetiva. El estudiante conversa, lee, practica y utiliza el idioma desde el inicio.", icon: MessagesSquare },
-  { title: "Corrección con respeto", copy: "Alberto guía al estudiante para que reconozca el error y lo corrija sin sentirse expuesto o desmotivado.", icon: Trophy },
-  { title: "Progreso que puede observarse", copy: "La comprensión, la fluidez y el desempeño se revisan cada dos unidades mediante práctica y evaluaciones.", icon: LineChart },
-];
-
-const journey = [
-  { year: "2018", title: "Inicio en Lenguas Modernas", copy: "Alberto comenzó su formación universitaria en la Universidad Dominicana O&M." },
-  { year: "2019", title: "Programa de Inglés por Inmersión", copy: "Completó el programa de inmersión y continuó fortaleciendo el idioma mediante lectura y estudio independiente." },
-  { year: "2022", title: "Primeros pasos como docente", copy: "Comenzó a enseñar en el Colegio O&M Hostos School y retomó sus estudios universitarios." },
-  { year: "2023", title: "Impact Language Institute", copy: "Se formó en su metodología de enseñanza y pasó a formar parte del equipo docente del instituto." },
-  { year: "2024", title: "O&M English Program", copy: "Se incorporó al programa de inglés de O&M y obtuvo su licenciatura en Lenguas Modernas en diciembre." },
-];
-
-export default function AboutPage() {
-  return (
-    <main className="min-h-screen overflow-x-hidden bg-surface-cream text-brand-navy">
-      <SiteHeader />
-      <AboutHero />
-      <AcademyIntro />
-      <StatsDivider />
-      <MethodValues />
-      <Journey />
-      <FinalCTA />
-      <SiteFooter />
-    </main>
-  );
+export default async function AboutPage() {
+  const locale = await getRequestLocale();
+  const c = copy[locale];
+  return <main className="min-h-screen overflow-x-hidden bg-surface-cream text-brand-navy"><SiteHeader locale={locale} /><AboutHero locale={locale} c={c} /><AcademyIntro c={c} /><StatsDivider c={c} /><MethodValues c={c} /><Journey c={c} /><FinalCTA locale={locale} c={c} /><SiteFooter locale={locale} /></main>;
 }
 
-function AboutHero() {
-  return (
-    <section className="relative isolate overflow-hidden bg-brand-navy px-4 py-14 text-white sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-      <div className="orbital-grid absolute inset-0 opacity-10" />
-      <div className="program-ring absolute -right-44 top-8 hidden size-[520px] rounded-full opacity-70 blur-2xl md:block" />
-      <div className="mx-auto grid max-w-6xl gap-9 lg:grid-cols-[0.94fr_1.06fr] lg:items-stretch">
-        <MotionReveal>
-          <p className="section-kicker-dark">Sobre Alberto Academy</p>
-          <h1 className="section-heading mt-4 max-w-4xl text-white">Una academia online con método, cercanía y un profesor al frente.</h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-white/72 sm:text-lg sm:leading-8">
-            Alberto Academy nace de una realidad sencilla: muchas personas quieren aprender, pero no pueden ajustarse a la enseñanza presencial o siguen estudiando sin sentirse capaces de conversar.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/contact" className="button-primary">Conversar con Alberto <CalendarCheck size={18} aria-hidden /></Link>
-            <Link href="/programs#programs-hero" className="button-secondary">Explorar programas <ArrowRight size={18} aria-hidden /></Link>
-          </div>
-        </MotionReveal>
-        <MotionImagePanel delay={0.12} className="relative lg:pt-9">
-          <div className="image-sheen relative aspect-[16/10] overflow-hidden rounded-xl border border-white/14 bg-brand-blue p-2 shadow-2xl shadow-brand-navy/24 sm:p-3 lg:h-full lg:aspect-auto">
-            <div className="relative h-full overflow-hidden rounded-lg">
-              <Image src="/images/about-hero.webp" alt="Estudiante participando en una clase online de Alberto Academy" fill priority quality={82} sizes="(min-width: 1180px) 590px, (min-width: 1024px) 50vw, 100vw" className="object-cover object-center" />
-              <div className="absolute inset-0 bg-brand-navy/12" />
-            </div>
-          </div>
-        </MotionImagePanel>
-      </div>
-    </section>
-  );
+type Copy = typeof copy.es;
+
+function AboutHero({ locale, c }: { locale: Locale; c: Copy }) {
+  return <section className="relative isolate overflow-hidden bg-brand-navy px-4 py-14 text-white sm:px-6 sm:py-16 lg:px-8 lg:py-20"><div className="orbital-grid absolute inset-0 opacity-10" /><div className="program-ring absolute -right-44 top-8 hidden size-[520px] rounded-full opacity-70 blur-2xl md:block" /><div className="mx-auto grid max-w-6xl gap-9 lg:grid-cols-[0.94fr_1.06fr] lg:items-stretch"><MotionReveal><p className="section-kicker-dark">{c.heroKicker}</p><h1 className="section-heading mt-4 max-w-4xl text-white">{c.heroTitle}</h1><p className="mt-5 max-w-2xl text-base leading-7 text-white/72 sm:text-lg sm:leading-8">{c.heroBody}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link href={localePath(locale, "/contact")} className="button-primary">{c.heroPrimary} <CalendarCheck size={18} aria-hidden /></Link><Link href={localePath(locale, "/programs#programs-hero")} className="button-secondary">{c.heroSecondary} <ArrowRight size={18} aria-hidden /></Link></div></MotionReveal><MotionImagePanel delay={0.12} className="relative lg:pt-9"><div className="image-sheen relative aspect-[16/10] overflow-hidden rounded-xl border border-white/14 bg-brand-blue p-2 shadow-2xl shadow-brand-navy/24 sm:p-3 lg:h-full lg:aspect-auto"><div className="relative h-full overflow-hidden rounded-lg"><Image src="/images/about-hero.webp" alt={c.heroAlt} fill priority quality={82} sizes="(min-width: 1180px) 590px, (min-width: 1024px) 50vw, 100vw" className="object-cover object-center" /><div className="absolute inset-0 bg-brand-navy/12" /></div></div></MotionImagePanel></div></section>;
 }
 
-function AcademyIntro() {
-  return (
-    <section className="section-pad bg-surface-cream">
-      <div className="section-container grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
-        <MotionImagePanel className="relative pb-12 lg:pb-9">
-          <div className="relative min-h-[360px] rounded-xl border border-brand-navy/14 p-2 shadow-2xl shadow-brand-navy/12 sm:min-h-[460px] sm:p-3 lg:h-full">
-            <div className="image-sheen relative h-full min-h-[344px] overflow-hidden rounded-lg bg-brand-navy sm:min-h-[436px]">
-              <Image src="/images/alberto-portrait-original.jpeg" alt="Alberto A. Sosa, fundador y profesor de Alberto Academy" fill quality={82} sizes="(min-width: 1180px) 500px, (min-width: 1024px) 42vw, 100vw" className="object-cover object-[center_16%]" />
-            </div>
-          </div>
-          <div className="absolute -bottom-1 left-5 right-5 rounded-lg border border-white/14 bg-brand-blue/92 p-4 text-white shadow-xl shadow-brand-navy/20 backdrop-blur sm:left-7 sm:right-7">
-            <div className="flex items-center gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-teal"><GraduationCap size={20} aria-hidden /></span>
-              <div><p className="text-xs font-extrabold uppercase tracking-[0.08em] text-white/58">República Dominicana</p><p className="font-heading text-xl font-normal">Licenciado en Lenguas Modernas</p></div>
-            </div>
-          </div>
-        </MotionImagePanel>
-
-        <MotionReveal delay={0.12}>
-          <p className="section-kicker">Alberto A. Sosa</p>
-          <h2 className="section-heading mt-3 max-w-3xl">Experiencia académica puesta al servicio de una comunicación real.</h2>
-          <div className="body-copy mt-5 space-y-4">
-            <p>Alberto es licenciado en Lenguas Modernas y cuenta con más de cuatro años de experiencia docente. Ha enseñado a más de 400 estudiantes, desde los 9 años hasta la adultez.</p>
-            <p>Su trayectoria incluye el Colegio O&M Hostos School, Impact Language Institute y el O&M English Program. Actualmente enseña en Impact Language Institute y en el programa de inglés de O&M.</p>
-            <p>Decidió crear Alberto Academy para que más personas puedan estudiar desde cualquier lugar, con una formación seria y flexible que no dependa de asistir físicamente a un aula.</p>
-          </div>
-          <div className="mt-6 flex flex-wrap gap-2">
-            {["Licenciatura en Lenguas Modernas", "Diploma de Inglés por Inmersión", "Formación en Impact Language Institute", "Método directo"].map((badge) => <span key={badge} className="badge-blue">{badge}</span>)}
-          </div>
-        </MotionReveal>
-      </div>
-    </section>
-  );
+function AcademyIntro({ c }: { c: Copy }) {
+  return <section className="section-pad bg-surface-cream"><div className="section-container grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch"><MotionImagePanel className="relative pb-12 lg:pb-9"><div className="relative min-h-[360px] rounded-xl border border-brand-navy/14 p-2 shadow-2xl shadow-brand-navy/12 sm:min-h-[460px] sm:p-3 lg:h-full"><div className="image-sheen relative h-full min-h-[344px] overflow-hidden rounded-lg bg-brand-navy sm:min-h-[436px]"><Image src="/images/alberto-portrait-original.jpeg" alt={c.introImageAlt} fill quality={82} sizes="(min-width: 1180px) 500px, (min-width: 1024px) 42vw, 100vw" className="object-cover object-[center_16%]" /></div></div><div className="absolute -bottom-1 left-5 right-5 rounded-lg border border-white/14 bg-brand-blue/92 p-4 text-white shadow-xl shadow-brand-navy/20 backdrop-blur sm:left-7 sm:right-7"><div className="flex items-center gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-teal"><GraduationCap size={20} aria-hidden /></span><div><p className="text-xs font-extrabold uppercase tracking-[0.08em] text-white/58">{c.introImageKicker}</p><p className="font-heading text-xl font-normal">{c.introImageTitle}</p></div></div></div></MotionImagePanel><MotionReveal delay={0.12}><p className="section-kicker">{c.introKicker}</p><h2 className="section-heading mt-3 max-w-3xl">{c.introTitle}</h2><div className="body-copy mt-5 space-y-4">{c.introParagraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div><div className="mt-6 flex flex-wrap gap-2">{c.badges.map((badge) => <span key={badge} className="badge-blue">{badge}</span>)}</div></MotionReveal></div></section>;
 }
 
-function StatsDivider() {
-  return (
-    <section className="bg-surface-cream px-4 pb-12 text-white sm:px-6 sm:pb-14 lg:px-8 lg:pb-16">
-      <MotionReveal className="mx-auto grid max-w-6xl overflow-hidden rounded-xl border border-white/10 bg-brand-navy shadow-2xl shadow-brand-navy/12 sm:grid-cols-3">
-        {academyStats.map((item) => (
-          <div key={item.label} className="border-b border-white/10 p-6 last:border-b-0 sm:border-r lg:border-b-0 lg:p-7">
-            <CountUpStat value={item.value} className="block font-heading text-[2.1rem] font-normal leading-none text-brand-teal-light" />
-            <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.08em] text-white/58">{item.label}</p>
-          </div>
-        ))}
-      </MotionReveal>
-    </section>
-  );
+function StatsDivider({ c }: { c: Copy }) {
+  return <section className="bg-surface-cream px-4 pb-12 text-white sm:px-6 sm:pb-14 lg:px-8 lg:pb-16"><MotionReveal className="mx-auto grid max-w-6xl overflow-hidden rounded-xl border border-white/10 bg-brand-navy shadow-2xl shadow-brand-navy/12 sm:grid-cols-3">{c.stats.map((item) => <div key={item.label} className="border-b border-white/10 p-6 last:border-b-0 sm:border-r lg:border-b-0 lg:p-7"><CountUpStat value={item.value} className="block font-heading text-[2.1rem] font-normal leading-none text-brand-teal-light" /><p className="mt-3 text-xs font-extrabold uppercase tracking-[0.08em] text-white/58">{item.label}</p></div>)}</MotionReveal></section>;
 }
 
-function MethodValues() {
-  return (
-    <section className="section-pad bg-brand-blue text-white">
-      <div className="section-container">
-        <MotionReveal className="mx-auto max-w-3xl text-center">
-          <p className="section-kicker-dark">Cómo enseña Alberto</p>
-          <h2 className="section-heading mt-3">Una clase para comprender, practicar y utilizar el idioma.</h2>
-          <p className="mt-5 leading-7 text-white/68">La traducción se utiliza solo como apoyo. La mayor parte de la clase invita al estudiante a comprender, asociar, responder y utilizar el idioma.</p>
-        </MotionReveal>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {values.map((value, index) => {
-            const Icon = value.icon;
-            return (
-              <MotionArticle key={value.title} delay={index * 0.07} className="rounded-xl border border-white/14 bg-brand-navy p-5 sm:p-6">
-                <span className="flex size-12 items-center justify-center rounded-lg bg-brand-teal"><Icon size={22} strokeWidth={1.8} aria-hidden /></span>
-                <h3 className="mt-5 font-heading text-2xl font-normal">{value.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-white/68">{value.copy}</p>
-              </MotionArticle>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
+function MethodValues({ c }: { c: Copy }) {
+  return <section className="section-pad bg-brand-blue text-white"><div className="section-container"><MotionReveal className="mx-auto max-w-3xl text-center"><p className="section-kicker-dark">{c.methodKicker}</p><h2 className="section-heading mt-3">{c.methodTitle}</h2><p className="mt-5 leading-7 text-white/68">{c.methodBody}</p></MotionReveal><div className="mt-10 grid gap-4 sm:grid-cols-2">{c.values.map((value, index) => { const Icon = value.icon; return <MotionArticle key={value.title} delay={index * 0.07} className="rounded-xl border border-white/14 bg-brand-navy p-5 sm:p-6"><span className="flex size-12 items-center justify-center rounded-lg bg-brand-teal"><Icon size={22} strokeWidth={1.8} aria-hidden /></span><h3 className="mt-5 font-heading text-2xl font-normal">{value.title}</h3><p className="mt-3 text-sm leading-7 text-white/68">{value.copy}</p></MotionArticle>; })}</div></div></section>;
 }
 
-function Journey() {
-  return (
-    <section className="relative overflow-hidden bg-brand-navy px-4 py-16 text-white sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-      <div className="orbital-grid absolute inset-0 opacity-10" />
-      <div className="section-container relative grid gap-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
-        <MotionReveal>
-          <p className="section-kicker-dark">Trayectoria</p>
-          <h2 className="section-heading mt-3 max-w-3xl text-white">De estudiante constante a profesor de tres entornos educativos.</h2>
-          <div className="mt-10 grid gap-4">
-            {journey.map((item, index) => (
-              <MotionArticle key={item.year} delay={index * 0.07} className="grid gap-4 border-t border-white/12 pt-5 sm:grid-cols-[5rem_1fr]">
-                <p className="font-heading text-3xl font-normal text-brand-teal-light">{item.year}</p>
-                <div><h3 className="font-heading text-2xl font-normal">{item.title}</h3><p className="mt-2 text-sm leading-6 text-white/64">{item.copy}</p></div>
-              </MotionArticle>
-            ))}
-          </div>
-        </MotionReveal>
-        <MotionImagePanel delay={0.12} className="relative mx-auto w-full max-w-[30rem]">
-          <div className="relative aspect-[4/5] rounded-xl border border-white/22 p-2 shadow-2xl shadow-brand-navy/30 sm:p-3">
-            <div className="image-sheen relative h-full overflow-hidden rounded-lg">
-              <Image src="/images/about-journey-teaching.webp" alt="Alberto preparando materiales para sus clases de idiomas" fill quality={82} sizes="(min-width: 1180px) 440px, (min-width: 1024px) 40vw, 100vw" className="object-cover object-center" />
-            </div>
-          </div>
-          <div className="absolute -bottom-5 left-5 right-5 rounded-lg border border-white/14 bg-brand-blue/92 p-4 text-white backdrop-blur">
-            <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-md bg-brand-teal"><BookOpenCheck size={20} aria-hidden /></span><div><p className="text-xs font-extrabold uppercase tracking-[0.08em] text-white/58">Experiencia actual</p><p className="font-heading text-xl font-normal">Impact Language Institute y O&M English Program</p></div></div>
-          </div>
-        </MotionImagePanel>
-      </div>
-    </section>
-  );
+function Journey({ c }: { c: Copy }) {
+  return <section className="relative overflow-hidden bg-brand-navy px-4 py-16 text-white sm:px-6 sm:py-20 lg:px-8 lg:py-24"><div className="orbital-grid absolute inset-0 opacity-10" /><div className="section-container relative grid gap-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center"><MotionReveal><p className="section-kicker-dark">{c.journeyKicker}</p><h2 className="section-heading mt-3 max-w-3xl text-white">{c.journeyTitle}</h2><div className="mt-10 grid gap-4">{c.journey.map((item, index) => <MotionArticle key={item.year} delay={index * 0.07} className="grid gap-4 border-t border-white/12 pt-5 sm:grid-cols-[5rem_1fr]"><p className="font-heading text-3xl font-normal text-brand-teal-light">{item.year}</p><div><h3 className="font-heading text-2xl font-normal">{item.title}</h3><p className="mt-2 text-sm leading-6 text-white/64">{item.copy}</p></div></MotionArticle>)}</div></MotionReveal><MotionImagePanel delay={0.12} className="relative mx-auto w-full max-w-[30rem]"><div className="relative aspect-[4/5] rounded-xl border border-white/22 p-2 shadow-2xl shadow-brand-navy/30 sm:p-3"><div className="image-sheen relative h-full overflow-hidden rounded-lg"><Image src="/images/about-journey-teaching.webp" alt={c.journeyAlt} fill quality={82} sizes="(min-width: 1180px) 440px, (min-width: 1024px) 40vw, 100vw" className="object-cover object-center" /></div></div><div className="absolute -bottom-5 left-5 right-5 rounded-lg border border-white/14 bg-brand-blue/92 p-4 text-white backdrop-blur"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-md bg-brand-teal"><BookOpenCheck size={20} aria-hidden /></span><div><p className="text-xs font-extrabold uppercase tracking-[0.08em] text-white/58">{c.journeyBadge}</p><p className="font-heading text-xl font-normal">{c.journeyPlace}</p></div></div></div></MotionImagePanel></div></section>;
 }
 
-function FinalCTA() {
-  return (
-    <section className="bg-surface-cream px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-      <MotionReveal className="mx-auto max-w-6xl overflow-hidden rounded-xl bg-brand-navy text-white shadow-2xl shadow-brand-navy/16">
-        <div className="grid gap-0 lg:grid-cols-[1.08fr_0.92fr]">
-          <div className="p-6 sm:p-8 lg:p-10"><p className="section-kicker-dark">La misión</p><h2 className="mt-3 font-heading text-3xl font-normal leading-tight sm:text-4xl">Ayudarle a construir una voz más segura en otro idioma.</h2><p className="mt-5 max-w-2xl leading-7 text-white/68">Con enseñanza progresiva, conversación contextual y seguimiento honesto, Alberto Academy busca convertir el estudio en una habilidad que usted pueda utilizar.</p></div>
-          <div className="flex flex-col justify-end gap-4 border-t border-white/10 bg-white/[0.05] p-6 sm:p-8 lg:border-l lg:border-t-0 lg:p-10">
-            <div className="grid size-12 place-items-center rounded-lg bg-brand-teal"><HeartHandshake size={24} aria-hidden /></div>
-            <p className="text-sm leading-6 text-white/62">Comience con una conversación gratuita para conocer su nivel, sus objetivos y la ruta más conveniente.</p>
-            <Link href="/contact" className="button-primary">Conversar con Alberto <CalendarCheck size={18} aria-hidden /></Link>
-            <Link href="/programs#programs-hero" className="button-secondary">Ver programas <CheckCircle2 size={18} aria-hidden /></Link>
-          </div>
-        </div>
-      </MotionReveal>
-    </section>
-  );
+function FinalCTA({ locale, c }: { locale: Locale; c: Copy }) {
+  return <section className="bg-surface-cream px-4 py-16 sm:px-6 lg:px-8 lg:py-24"><MotionReveal className="mx-auto max-w-6xl overflow-hidden rounded-xl bg-brand-navy text-white shadow-2xl shadow-brand-navy/16"><div className="grid gap-0 lg:grid-cols-[1.08fr_0.92fr]"><div className="p-6 sm:p-8 lg:p-10"><p className="section-kicker-dark">{c.finalKicker}</p><h2 className="mt-3 font-heading text-3xl font-normal leading-tight sm:text-4xl">{c.finalTitle}</h2><p className="mt-5 max-w-2xl leading-7 text-white/68">{c.finalBody}</p></div><div className="flex flex-col justify-end gap-4 border-t border-white/10 bg-white/[0.05] p-6 sm:p-8 lg:border-l lg:border-t-0 lg:p-10"><div className="grid size-12 place-items-center rounded-lg bg-brand-teal"><HeartHandshake size={24} aria-hidden /></div><p className="text-sm leading-6 text-white/62">{c.finalNote}</p><Link href={localePath(locale, "/contact")} className="button-primary">{c.finalPrimary} <CalendarCheck size={18} aria-hidden /></Link><Link href={localePath(locale, "/programs#programs-hero")} className="button-secondary">{c.finalSecondary} <CheckCircle2 size={18} aria-hidden /></Link></div></div></MotionReveal></section>;
 }
