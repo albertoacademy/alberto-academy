@@ -37,7 +37,12 @@ export default async function FAQPage() {
 
       <section className="px-4 py-8 sm:px-6 sm:py-10 md:py-12 lg:px-8 lg:py-16">
         <div className="mx-auto max-w-5xl"><div className="grid gap-10 sm:gap-12 lg:gap-14">
-          <GroupedFAQAccordion items={items} categories={categories} />
+          <GroupedFAQAccordion
+            items={items}
+            categories={categories}
+            topicLabel={isEnglish ? "Topic" : "Tema"}
+            questionLabel={isEnglish ? "questions" : "preguntas"}
+          />
           <MotionReveal className="rounded-xl bg-brand-navy p-5 text-white shadow-2xl shadow-brand-navy/14 sm:p-6 lg:p-8">
             <p className="section-kicker-dark">{isEnglish ? "Your goal is personal" : "Su caso es único"}</p>
             <h2 className="mt-3 font-heading text-2xl font-normal sm:text-3xl">{isEnglish ? "Still unsure which Spanish path fits you?" : "¿Tiene una pregunta sobre su nivel o sus objetivos?"}</h2>

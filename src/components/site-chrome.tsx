@@ -49,7 +49,7 @@ export function SiteHeader({ locale = "es" }: { locale?: Locale }) {
 
           <div className="flex shrink-0 items-center gap-2">
             <LanguageToggle locale={locale} />
-            <ThemeToggle scope="public" compact />
+            <ThemeToggle scope="public" compact locale={locale} />
             <Link href={localePath(locale, "/contact")} className="hidden h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-brand-red px-3 text-sm font-bold text-white shadow-sm shadow-brand-red/20 transition hover:bg-brand-red-dark sm:inline-flex sm:px-4">
               <CalendarCheck size={16} aria-hidden />
               <span className="hidden sm:inline">{isEnglish ? "Free Consultation" : "Conversación inicial"}</span>

@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
+import type { Locale } from "@/lib/i18n";
 
 type ThemeScope = "public" | "admin";
 type ThemeMode = "light" | "dark";
@@ -11,7 +12,7 @@ const storageKeys: Record<ThemeScope, string> = {
   admin: "alberto-admin-theme",
 };
 
-export function ThemeToggle({ scope, compact = false }: { scope: ThemeScope; compact?: boolean }) {
+export function ThemeToggle({ scope, compact = false, locale = "es" }: { scope: ThemeScope; compact?: boolean; locale?: Locale }) {
   const mode = useSyncExternalStore<ThemeMode>(
     (callback) => subscribeToTheme(scope, callback),
     () => getStoredMode(scope),
@@ -30,7 +31,9 @@ export function ThemeToggle({ scope, compact = false }: { scope: ThemeScope; com
   }
 
   const Icon = mode === "dark" ? Sun : Moon;
-  const publicLabel = mode === "dark" ? "Cambiar al modo claro" : "Cambiar al modo oscuro";
+  const publicLabel = locale === "en"
+    ? `Switch to ${mode === "dark" ? "light" : "dark"} mode`
+    : mode === "dark" ? "Cambiar al modo claro" : "Cambiar al modo oscuro";
   const adminLabel = `Switch admin theme to ${mode === "dark" ? "light" : "dark"} mode`;
 
   return (
@@ -45,7 +48,7 @@ export function ThemeToggle({ scope, compact = false }: { scope: ThemeScope; com
       aria-label={scope === "public" ? publicLabel : adminLabel}
     >
       <Icon size={17} aria-hidden />
-      {!compact && <span>{scope === "public" ? (mode === "dark" ? "Claro" : "Oscuro") : (mode === "dark" ? "Light" : "Dark")}</span>}
+      {!compact && <span>{scope === "public" ? (locale === "en" ? (mode === "dark" ? "Light" : "Dark") : (mode === "dark" ? "Claro" : "Oscuro")) : (mode === "dark" ? "Light" : "Dark")}</span>}
     </button>
   );
 }

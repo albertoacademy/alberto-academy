@@ -13,6 +13,8 @@ type ExclusiveFAQAccordionProps = {
 type GroupedFAQAccordionProps = {
   items: FAQItem[];
   categories: readonly FAQItem["category"][];
+  questionLabel?: string;
+  topicLabel?: string;
 };
 
 export function ExclusiveFAQAccordion({ items, defaultOpenIndex = 0 }: ExclusiveFAQAccordionProps) {
@@ -43,7 +45,7 @@ export function ExclusiveFAQAccordion({ items, defaultOpenIndex = 0 }: Exclusive
   );
 }
 
-export function GroupedFAQAccordion({ items, categories }: GroupedFAQAccordionProps) {
+export function GroupedFAQAccordion({ items, categories, questionLabel = "preguntas", topicLabel = "Tema" }: GroupedFAQAccordionProps) {
   const firstQuestion = items[0]?.question ?? null;
   const [openQuestion, setOpenQuestion] = useState<string | null>(firstQuestion);
 
@@ -56,13 +58,13 @@ export function GroupedFAQAccordion({ items, categories }: GroupedFAQAccordionPr
           <MotionReveal key={category} id={slugify(category)} delay={groupIndex * 0.06} className="scroll-mt-24">
             <div className="mb-5 grid gap-3 sm:mb-7 sm:grid-cols-[1fr_auto] sm:items-end">
               <div>
-                <p className="section-kicker">Tema {String(groupIndex + 1).padStart(2, "0")}</p>
+                <p className="section-kicker">{topicLabel} {String(groupIndex + 1).padStart(2, "0")}</p>
                 <h2 className="mt-2 font-heading text-[2rem] font-normal leading-tight text-brand-navy sm:text-4xl">
                   {category}
                 </h2>
               </div>
               <p className="w-fit rounded-full border border-brand-navy/10 bg-surface-white px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.08em] text-brand-navy/52 shadow-sm shadow-brand-navy/5 sm:text-sm">
-                {faqs.length} preguntas
+                {faqs.length} {questionLabel}
               </p>
             </div>
 
