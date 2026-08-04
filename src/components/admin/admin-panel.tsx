@@ -884,7 +884,7 @@ function AdminConfigRequired() {
 }
 
 export function AdminLogin({ onEnter }: { onEnter?: () => void }) {
-  const [email, setEmail] = useState("alberto@albertoacademy.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
