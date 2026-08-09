@@ -39,10 +39,8 @@ import {
   Plus,
   Save,
   Search,
-  Settings,
   Target,
   Trash2,
-  UploadCloud,
   UserCheck,
   UserRoundPlus,
   Users,
@@ -54,23 +52,16 @@ type ActiveView =
   | "dashboard"
   | "leads"
   | "students"
-  | "student-detail"
-  | "courses"
-  | "materials"
-  | "settings";
+  | "student-detail";
 
 const navItems: {
   label: string;
   view: ActiveView;
   icon: typeof LayoutDashboard;
-  enabled: boolean;
 }[] = [
-  { label: "Dashboard", view: "dashboard", icon: LayoutDashboard, enabled: true },
-  { label: "Leads", view: "leads", icon: UserRoundPlus, enabled: true },
-  { label: "Students", view: "students", icon: Users, enabled: true },
-  { label: "Courses", view: "courses", icon: BookOpenCheck, enabled: false },
-  { label: "Materials", view: "materials", icon: UploadCloud, enabled: false },
-  { label: "Settings", view: "settings", icon: Settings, enabled: false },
+  { label: "Dashboard", view: "dashboard", icon: LayoutDashboard },
+  { label: "Leads", view: "leads", icon: UserRoundPlus },
+  { label: "Students", view: "students", icon: Users },
 ];
 
 const leadStatuses: LeadStatus[] = ["New", "Contacted", "Trial booked", "Won", "Lost"];
@@ -558,10 +549,6 @@ export function AdminPanel() {
                   key={item.label}
                   type="button"
                   onClick={() => {
-                    if (!item.enabled) {
-                      return;
-                    }
-
                     if (item.view !== "students") {
                       setSelectedStudentId(null);
                     }
