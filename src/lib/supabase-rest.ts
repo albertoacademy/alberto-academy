@@ -1,5 +1,4 @@
 import type { Lead, Level, Student } from "@/lib/crm-types";
-import { questionnaireSections } from "@/lib/questionnaire";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "") ?? "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -50,14 +49,6 @@ type StudentRecord = {
 
 type AdminUserRecord = {
   user_id: string;
-};
-
-type QuestionnaireAnswerRecord = {
-  question_id: number;
-  category_title: string;
-  question_text: string;
-  answer: string | null;
-  updated_by?: string | null;
 };
 
 export function isSupabaseConfigured() {
@@ -152,38 +143,6 @@ export async function listStudents(accessToken: string) {
     { accessToken },
   );
   return records.map(recordToStudent);
-}
-
-export async function listQuestionnaireAnswers(accessToken: string) {
-  const records = await requestSupabase<Pick<QuestionnaireAnswerRecord, "question_id" | "answer">[]>(
-    "/rest/v1/questionnaire_answers?select=question_id,answer&order=question_id.asc",
-    { accessToken },
-  );
-
-  return records.reduce<Record<number, string>>((answers, record) => {
-    answers[record.question_id] = record.answer ?? "";
-    return answers;
-  }, {});
-}
-
-export async function saveQuestionnaireAnswers(answers: Record<number, string>, accessToken: string) {
-  const session = getAdminSession();
-  const records: QuestionnaireAnswerRecord[] = questionnaireSections.flatMap((section) =>
-    section.questions.map((question) => ({
-      question_id: question.id,
-      category_title: section.title,
-      question_text: question.text,
-      answer: answers[question.id] ?? "",
-      updated_by: session?.userId ?? null,
-    })),
-  );
-
-  await requestSupabase<void>("/rest/v1/questionnaire_answers?on_conflict=question_id", {
-    method: "POST",
-    accessToken,
-    body: records,
-    prefer: "resolution=merge-duplicates,return=minimal",
-  });
 }
 
 export async function saveLeadToSupabase(lead: Lead, accessToken: string, mode: "add" | "edit") {
