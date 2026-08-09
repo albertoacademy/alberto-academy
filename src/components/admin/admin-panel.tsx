@@ -18,6 +18,7 @@ import {
   signInAdmin,
 } from "@/lib/supabase-rest";
 import {
+  type LucideIcon,
   ArrowLeft,
   Award,
   BarChart3,
@@ -29,7 +30,6 @@ import {
   Eye,
   EyeOff,
   FileText,
-  LayoutDashboard,
   LogOut,
   Mail,
   MessageSquareText,
@@ -49,7 +49,6 @@ import {
 } from "lucide-react";
 
 type ActiveView =
-  | "dashboard"
   | "leads"
   | "students"
   | "student-detail";
@@ -57,9 +56,8 @@ type ActiveView =
 const navItems: {
   label: string;
   view: ActiveView;
-  icon: typeof LayoutDashboard;
+  icon: LucideIcon;
 }[] = [
-  { label: "Dashboard", view: "dashboard", icon: LayoutDashboard },
   { label: "Leads", view: "leads", icon: UserRoundPlus },
   { label: "Students", view: "students", icon: Users },
 ];
@@ -134,7 +132,7 @@ function clampProgress(value: string) {
 }
 
 export function AdminPanel() {
-  const [activeView, setActiveView] = useState<ActiveView>("dashboard");
+  const [activeView, setActiveView] = useState<ActiveView>("leads");
   const [leads, setLeads] = useState<Lead[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [leadSearch, setLeadSearch] = useState("");
@@ -251,30 +249,6 @@ export function AdminPanel() {
     students,
   ]);
 
-  const leadStats = useMemo(
-    () => ({
-      total: leads.length,
-      new: leads.filter((lead) => lead.status === "New").length,
-      booked: leads.filter((lead) => lead.status === "Trial booked").length,
-      won: leads.filter((lead) => lead.status === "Won").length,
-    }),
-    [leads],
-  );
-
-  const studentStats = useMemo(
-    () => ({
-      total: students.length,
-      active: students.filter((student) => student.status === "Active").length,
-      avgProgress: students.length
-        ? Math.round(
-            students.reduce((sum, student) => sum + student.progress, 0) /
-              students.length,
-          )
-        : 0,
-    }),
-    [students],
-  );
-
   const selectedStudent = useMemo(
     () =>
       students.find((student) => student.id === selectedStudentId) ?? null,
@@ -282,15 +256,11 @@ export function AdminPanel() {
   );
 
   const activeViewTitle =
-    activeView === "dashboard"
-      ? "Dashboard"
-      : activeView === "leads"
-        ? "Leads"
-        : activeView === "students"
-          ? "Students"
-          : activeView === "student-detail"
-            ? selectedStudent?.name ?? "Student Profile"
-            : "Workspace";
+    activeView === "leads"
+      ? "Leads"
+      : activeView === "students"
+        ? "Students"
+        : selectedStudent?.name ?? "Student Profile";
 
   function openNewLead() {
     setLeadMode("add");
@@ -645,22 +615,6 @@ export function AdminPanel() {
           </header>
 
           <div className="px-3 py-3 sm:px-6 sm:py-5 lg:px-6 lg:py-6">
-            {activeView === "dashboard" && (
-              <Dashboard
-                leadStats={leadStats}
-                studentStats={studentStats}
-                leads={leads}
-                students={students}
-                openLead={(lead) => {
-                  setLeadMode("edit");
-                  setLeadDraft(lead);
-                }}
-                openStudent={(student) => {
-                  openStudentProfile(student);
-                }}
-              />
-            )}
-
             {activeView === "leads" && (
               <LeadsView
                 leads={filteredLeads}
@@ -906,207 +860,6 @@ export function AdminLogin({ onEnter }: { onEnter?: () => void }) {
         </button>
       </form>
     </main>
-  );
-}
-
-function Dashboard({
-  leadStats,
-  studentStats,
-  leads,
-  students,
-  openLead,
-  openStudent,
-}: {
-  leadStats: {
-    total: number;
-    new: number;
-    booked: number;
-    won: number;
-  };
-  studentStats: {
-    total: number;
-    active: number;
-    avgProgress: number;
-  };
-  leads: Lead[];
-  students: Student[];
-  openLead: (lead: Lead) => void;
-  openStudent: (student: Student) => void;
-}) {
-  return (
-    <div className="grid gap-4 lg:gap-5">
-      <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Total Leads"
-          value={String(leadStats.total)}
-          icon={UserRoundPlus}
-          tone="navy"
-        />
-
-        <MetricCard
-          label="Trials Booked"
-          value={String(leadStats.booked)}
-          icon={CalendarCheck}
-          tone="blue"
-        />
-
-        <MetricCard
-          label="Active Students"
-          value={String(studentStats.active)}
-          icon={Users}
-          tone="teal"
-        />
-
-        <MetricCard
-          label="Avg. Progress"
-          value={`${studentStats.avgProgress}%`}
-          icon={BarChart3}
-          tone="navy"
-        />
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr] xl:gap-5">
-        <section className="rounded-xl border border-brand-navy/10 bg-surface-white p-4 shadow-xl shadow-brand-navy/6 sm:p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="section-kicker">Lead Pipeline</p>
-
-              <h2 className="mt-1 font-heading text-[1.55rem] font-normal leading-tight sm:text-3xl xl:text-2xl">
-                Current opportunity flow
-              </h2>
-            </div>
-
-            <MessageSquareText
-              className="text-brand-teal"
-              size={26}
-              aria-hidden
-            />
-          </div>
-
-          <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-            {leadStatuses.map((status) => {
-              const count = leads.filter(
-                (lead) => lead.status === status,
-              ).length;
-
-              const percent = leads.length
-                ? Math.max(8, Math.round((count / leads.length) * 100))
-                : 0;
-
-              return (
-                <div
-                  key={status}
-                  className="rounded-lg border border-brand-navy/8 bg-surface-cream p-3 transition hover:border-brand-teal/30 hover:bg-surface-white sm:p-3.5"
-                >
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-extrabold text-brand-navy">
-                        {status}
-                      </p>
-
-                      <p className="mt-0.5 text-xs font-semibold text-brand-navy/48">
-                        Pipeline stage
-                      </p>
-                    </div>
-
-                    <span className="grid size-9 shrink-0 place-items-center rounded-md bg-brand-navy text-sm font-heading text-white">
-                      {count}
-                    </span>
-                  </div>
-
-                  <div className="h-2 overflow-hidden rounded-full bg-brand-navy/8">
-                    <div
-                      className="h-full rounded-full bg-brand-teal"
-                      style={{ width: `${percent}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="rounded-xl bg-brand-navy p-4 text-white shadow-xl shadow-brand-navy/12 sm:p-5">
-          <p className="section-kicker-dark">Teaching Snapshot</p>
-
-          <h2 className="mt-1 font-heading text-[1.55rem] font-normal leading-tight sm:text-3xl xl:text-2xl">
-            Student activity
-          </h2>
-
-          <div className="mt-4 grid gap-2.5">
-            {students.slice(0, 4).map((student) => (
-              <button
-                key={student.id}
-                type="button"
-                onClick={() => openStudent(student)}
-                className="grid gap-2.5 rounded-lg border border-white/10 bg-white/[0.06] p-3 text-left transition hover:border-brand-teal-light/50 hover:bg-white/[0.09] sm:p-3.5"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="font-bold text-white">{student.name}</p>
-
-                    <p className="mt-1 text-xs font-semibold text-white/48">
-                      {student.program}
-                    </p>
-                  </div>
-
-                  <StatusPill status={student.status} />
-                </div>
-
-                <ProgressBar value={student.progress} dark />
-              </button>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <section className="rounded-xl border border-brand-navy/10 bg-surface-white p-4 shadow-xl shadow-brand-navy/6 sm:p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="section-kicker">Recent Leads</p>
-
-            <h2 className="mt-1 font-heading text-[1.55rem] font-normal leading-tight sm:text-3xl">
-              Fresh form submissions
-            </h2>
-          </div>
-
-          <UserCheck className="text-brand-blue" size={26} aria-hidden />
-        </div>
-
-        <div className="mt-4 grid gap-2.5">
-          {leads.slice(0, 6).map((lead) => (
-            <button
-              key={lead.id}
-              type="button"
-              onClick={() => openLead(lead)}
-              className="grid min-w-0 gap-3 rounded-lg border border-white/10 bg-brand-navy p-3 text-left text-white transition hover:border-brand-teal-light/45 hover:bg-brand-blue sm:p-3.5 md:grid-cols-[1.1fr_1fr_0.7fr_auto] md:items-center"
-            >
-              <div className="min-w-0">
-                <p className="break-words font-extrabold text-white">
-                  {lead.name}
-                </p>
-
-                <p className="mt-1 break-all text-xs font-semibold text-white/54">
-                  {lead.email}
-                </p>
-              </div>
-
-              <p className="break-words text-sm font-bold text-white/70">
-                {lead.interest}
-              </p>
-
-              <StatusPill status={lead.status} />
-
-              <ChevronRight
-                size={18}
-                className="hidden text-white/42 md:block"
-                aria-hidden
-              />
-            </button>
-          ))}
-        </div>
-      </section>
-    </div>
   );
 }
 
@@ -1551,7 +1304,7 @@ function StudentActionButton({
   label,
   tone = "navy",
 }: {
-  icon: typeof LayoutDashboard;
+  icon: LucideIcon;
   label: string;
   tone?: "red" | "navy";
 }) {
@@ -1596,7 +1349,7 @@ function StudentInfoRow({
   value,
   href,
 }: {
-  icon: typeof LayoutDashboard;
+  icon: LucideIcon;
   label: string;
   value: string;
   href?: string;
@@ -1645,7 +1398,7 @@ function StudentKpiCard({
 }: {
   label: string;
   value: string;
-  icon: typeof LayoutDashboard;
+  icon: LucideIcon;
   tone?: "navy" | "blue" | "teal";
 }) {
   const toneClass =
@@ -1683,7 +1436,7 @@ function StudentOperationButton({
   label,
   meta,
 }: {
-  icon: typeof LayoutDashboard;
+  icon: LucideIcon;
   label: string;
   meta: string;
 }) {
@@ -2837,59 +2590,6 @@ function StudentTextarea({
         className="min-h-24 w-full min-w-0 rounded-md border border-brand-navy/12 bg-surface-white px-3 py-2.5 text-sm font-semibold leading-6 text-brand-navy outline-none transition focus:border-brand-teal focus:ring-4 focus:ring-brand-teal/10"
       />
     </label>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  icon: Icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  icon: typeof LayoutDashboard;
-  tone: "red" | "teal" | "blue" | "navy";
-}) {
-  const cardClass =
-    tone === "red"
-      ? "bg-brand-red"
-      : tone === "teal"
-        ? "bg-brand-teal"
-        : tone === "blue"
-          ? "bg-brand-blue"
-          : "bg-brand-navy";
-
-  return (
-    <article
-      className={`relative isolate flex min-h-[6.75rem] overflow-hidden rounded-xl p-4 text-white shadow-xl shadow-brand-navy/10 sm:min-h-[7.25rem] ${cardClass}`}
-    >
-      <div
-        className="absolute -right-8 -top-10 size-24 rounded-full bg-white/10 sm:size-28"
-        aria-hidden
-      />
-
-      <div
-        className="absolute -bottom-14 right-2 size-28 rounded-full bg-white/8 sm:size-32"
-        aria-hidden
-      />
-
-      <div className="relative z-10 flex w-full items-start justify-between gap-4">
-        <div className="flex min-h-full flex-col justify-between">
-          <p className="text-xs font-extrabold uppercase tracking-[0.08em] text-white/70">
-            {label}
-          </p>
-
-          <p className="mt-4 font-heading text-3xl font-normal leading-none sm:text-4xl">
-            {value}
-          </p>
-        </div>
-
-        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-white/16 text-white sm:size-11">
-          <Icon size={21} strokeWidth={1.8} aria-hidden />
-        </span>
-      </div>
-    </article>
   );
 }
 
