@@ -37,14 +37,9 @@ type StudentRecord = {
   full_name: string;
   email: string;
   phone: string | null;
-  program: string;
-  level: Student["level"];
-  status: Student["status"];
-  progress: number;
-  last_session: string | null;
-  next_session: string | null;
   goals: string | null;
   notes: string | null;
+  created_at: string;
 };
 
 type AdminUserRecord = {
@@ -302,12 +297,7 @@ function recordToStudent(record: StudentRecord): Student {
     name: record.full_name,
     email: record.email,
     phone: record.phone ?? "",
-    program: record.program,
-    level: record.level,
-    status: record.status,
-    progress: record.progress,
-    lastSession: record.last_session ?? "",
-    nextSession: record.next_session ?? "",
+    startDate: record.created_at?.slice(0, 10) ?? "",
     goals: record.goals ?? "",
     notes: record.notes ?? "",
   };
@@ -319,13 +309,10 @@ function studentToRecord(student: Student): StudentRecord {
     full_name: student.name,
     email: student.email,
     phone: student.phone || null,
-    program: student.program,
-    level: student.level,
-    status: student.status,
-    progress: student.progress,
-    last_session: student.lastSession || null,
-    next_session: student.nextSession || null,
     goals: student.goals || null,
     notes: student.notes || null,
+    created_at: student.startDate
+      ? `${student.startDate}T00:00:00.000Z`
+      : new Date().toISOString(),
   };
 }
