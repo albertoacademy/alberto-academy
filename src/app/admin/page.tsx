@@ -3,7 +3,7 @@ import { AdminPanel } from "@/components/admin/admin-panel";
 
 export const metadata: Metadata = {
   title: "Admin | Alberto Academy",
-  description: "Alberto Academy internal admin panel mockup for leads, students, and CRM workflows.",
+  description: "Alberto Academy internal admin panel for leads and enrolled students.",
 };
 
 export default function AdminPage() {

@@ -253,6 +253,21 @@ export function AdminPanel() {
     setStudentDraft(selectedStudent);
   }
 
+  function editStudent(student: Student) {
+    setStudentMode("edit");
+    setStudentDraft(student);
+  }
+
+  function confirmStudentDeletion(student: Student) {
+    if (
+      window.confirm(
+        `Delete ${student.name}? This action cannot be undone.`,
+      )
+    ) {
+      void deleteStudent(student.id);
+    }
+  }
+
   async function saveLead() {
     if (!leadDraft) {
       return;
@@ -593,6 +608,8 @@ export function AdminPanel() {
                 onOpen={(student) => {
                   openStudentProfile(student);
                 }}
+                onEdit={editStudent}
+                onDelete={confirmStudentDeletion}
               />
             )}
 
@@ -601,6 +618,7 @@ export function AdminPanel() {
                 student={selectedStudent}
                 onBack={returnToStudents}
                 onEdit={editSelectedStudent}
+                onDelete={() => confirmStudentDeletion(selectedStudent)}
               />
             )}
 
@@ -626,7 +644,7 @@ export function AdminPanel() {
           setStudent={setStudentDraft}
           onClose={() => setStudentDraft(null)}
           onSave={saveStudent}
-          onDelete={() => deleteStudent(studentDraft.id)}
+          onDelete={() => confirmStudentDeletion(studentDraft)}
         />
       )}
     </main>
@@ -817,10 +835,12 @@ function StudentProfilePage({
   student,
   onBack,
   onEdit,
+  onDelete,
 }: {
   student: Student;
   onBack: () => void;
   onEdit: () => void;
+  onDelete: () => void;
 }) {
   const initials =
     student.name
@@ -868,14 +888,25 @@ function StudentProfilePage({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onEdit}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-red px-5 text-sm font-extrabold text-white transition hover:bg-brand-red-dark sm:w-auto"
-          >
-            <Pencil size={17} aria-hidden />
-            Edit student
-          </button>
+          <div className="grid w-full gap-2 sm:flex sm:w-auto">
+            <button
+              type="button"
+              onClick={onEdit}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand-red px-5 text-sm font-extrabold text-white transition hover:bg-brand-red-dark"
+            >
+              <Pencil size={17} aria-hidden />
+              Edit student
+            </button>
+
+            <button
+              type="button"
+              onClick={onDelete}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-white/18 bg-white/[0.07] px-5 text-sm font-extrabold text-white transition hover:border-brand-red hover:bg-brand-red"
+            >
+              <Trash2 size={17} aria-hidden />
+              Delete
+            </button>
+          </div>
         </div>
       </section>
 
@@ -1161,12 +1192,16 @@ function StudentsView({
   setSearch,
   onAdd,
   onOpen,
+  onEdit,
+  onDelete,
 }: {
   students: Student[];
   search: string;
   setSearch: (value: string) => void;
   onAdd: () => void;
   onOpen: (student: Student) => void;
+  onEdit: (student: Student) => void;
+  onDelete: (student: Student) => void;
 }) {
   const formatDate = (value: string) =>
     value
@@ -1190,13 +1225,15 @@ function StudentsView({
 
       <div className="grid gap-3 border-t border-brand-navy/10 p-3 md:hidden">
         {students.map((student) => (
-          <button
+          <article
             key={student.id}
-            type="button"
-            onClick={() => onOpen(student)}
             className="min-w-0 rounded-lg border border-brand-navy/10 bg-surface-cream p-3.5 text-left transition hover:border-brand-teal/40 hover:bg-surface-white"
           >
-            <div className="flex items-start justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => onOpen(student)}
+              className="flex w-full items-start justify-between gap-3 text-left"
+            >
               <div className="min-w-0">
                 <p className="break-words font-extrabold text-brand-navy">
                   {student.name}
@@ -1206,7 +1243,7 @@ function StudentsView({
                 </p>
               </div>
               <ChevronRight className="shrink-0 text-brand-navy/34" size={18} aria-hidden />
-            </div>
+            </button>
 
             <div className="mt-3 grid gap-2 border-t border-brand-navy/8 pt-3 text-xs font-bold text-brand-navy/58">
               <p className="break-words">
@@ -1222,7 +1259,26 @@ function StudentsView({
                 {student.goals || "No goals added"}
               </p>
             </div>
-          </button>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-brand-navy/8 pt-3">
+              <button
+                type="button"
+                onClick={() => onEdit(student)}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-brand-navy px-3 text-xs font-extrabold text-white transition hover:bg-brand-blue"
+              >
+                <Pencil size={15} aria-hidden />
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(student)}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-brand-red/24 bg-brand-red px-3 text-xs font-extrabold text-white transition hover:bg-brand-red-dark"
+              >
+                <Trash2 size={15} aria-hidden />
+                Delete
+              </button>
+            </div>
+          </article>
         ))}
       </div>
 
@@ -1235,7 +1291,7 @@ function StudentsView({
               <th className="px-4 py-3 lg:px-5">Start date</th>
               <th className="px-4 py-3 lg:px-5">Goals</th>
               <th className="px-4 py-3 lg:px-5">Notes</th>
-              <th className="px-4 py-3 text-right lg:px-5">Open</th>
+              <th className="px-4 py-3 text-right lg:px-5">Actions</th>
             </tr>
           </thead>
 
@@ -1265,17 +1321,44 @@ function StudentsView({
                   <span className="line-clamp-2">{student.notes || "No notes added"}</span>
                 </td>
                 <td className="px-4 py-3.5 text-right lg:px-5">
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onOpen(student);
-                    }}
-                    aria-label={`Open ${student.name}`}
-                    className="inline-grid size-9 place-items-center rounded-md border border-brand-navy/10 text-brand-navy transition hover:border-brand-teal hover:text-brand-blue"
-                  >
-                    <ChevronRight size={18} aria-hidden />
-                  </button>
+                  <div className="inline-flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onOpen(student);
+                      }}
+                      aria-label={`Open ${student.name}`}
+                      title="Open profile"
+                      className="inline-grid size-9 place-items-center rounded-md border border-brand-navy/10 text-brand-navy transition hover:border-brand-teal hover:text-brand-blue"
+                    >
+                      <ChevronRight size={18} aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onEdit(student);
+                      }}
+                      aria-label={`Edit ${student.name}`}
+                      title="Edit student"
+                      className="inline-grid size-9 place-items-center rounded-md bg-brand-navy text-white transition hover:bg-brand-blue"
+                    >
+                      <Pencil size={16} aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onDelete(student);
+                      }}
+                      aria-label={`Delete ${student.name}`}
+                      title="Delete student"
+                      className="inline-grid size-9 place-items-center rounded-md bg-brand-red text-white transition hover:bg-brand-red-dark"
+                    >
+                      <Trash2 size={16} aria-hidden />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

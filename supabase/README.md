@@ -47,7 +47,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-publishable-key
 
 ## Migrations
 
-The initial CRM schema and seed rows live in:
+The initial CRM schema lives in:
 
 ```text
 supabase/migrations/20260705000000_initial_crm_schema.sql
@@ -58,4 +58,3 @@ The migration creates:
 - `public.leads`
 - `public.students`
 - row-level security policies
-- initial mock lead and student records
