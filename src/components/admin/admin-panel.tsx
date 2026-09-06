@@ -159,7 +159,6 @@ export function AdminPanel() {
 
         setLeads(backendLeads);
         setStudents(backendStudents);
-        setSyncMessage("Connected to Supabase");
       } catch (error) {
         console.error(error);
 
