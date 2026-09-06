@@ -681,6 +681,7 @@ export function AdminPanel() {
             {activeView === "leads" && (
               <LeadsView
                 leads={filteredLeads}
+                allLeads={leads}
                 search={leadSearch}
                 setSearch={setLeadSearch}
                 statusFilter={leadStatusFilter}
@@ -1170,6 +1171,7 @@ function StudentInfoRow({
 }
 function LeadsView({
   leads,
+  allLeads,
   search,
   setSearch,
   statusFilter,
@@ -1178,6 +1180,7 @@ function LeadsView({
   onOpen,
 }: {
   leads: Lead[];
+  allLeads: Lead[];
   search: string;
   setSearch: (value: string) => void;
   statusFilter: "All" | LeadStatus;
@@ -1185,27 +1188,73 @@ function LeadsView({
   onAdd: () => void;
   onOpen: (lead: Lead) => void;
 }) {
-  return (
-    <section className="overflow-hidden rounded-xl border border-brand-navy/10 bg-surface-white shadow-xl shadow-brand-navy/6">
-      <TableHeader
-        kicker="CRM Leads"
-        title="People who filled out the form"
-        search={search}
-        setSearch={setSearch}
-        buttonLabel="Add Lead"
-        onAdd={onAdd}
-      >
-        <AdminFilterSelect
-          label="Status"
-          value={statusFilter}
-          options={["All", ...leadStatuses]}
-          onChange={(value) =>
-            setStatusFilter(value as "All" | LeadStatus)
-          }
-        />
-      </TableHeader>
+  const programMetrics = useMemo(
+    () => publicLeadInterestOptions.map((interest, index) => {
+      const program = studentProgramDefinitions[index];
+      const count = allLeads.filter(
+        (lead) => normalizeStudentProgram(lead.interest) === program.label,
+      ).length;
 
-      <div className="grid gap-3 border-t border-brand-navy/10 p-3 md:hidden">
+      return {
+        id: program.id,
+        label: interest,
+        count,
+      };
+    }),
+    [allLeads],
+  );
+
+  return (
+    <div className="grid gap-5">
+      <section aria-labelledby="lead-program-title">
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <div>
+            <p className="section-kicker">Lead snapshot</p>
+            <h2 id="lead-program-title" className="mt-1 font-heading text-2xl font-normal text-brand-navy">
+              Leads by program
+            </h2>
+          </div>
+          <span className="hidden rounded-md bg-brand-navy px-3 py-2 text-xs font-extrabold uppercase tracking-[0.08em] text-white sm:inline-flex">
+            All lead statuses
+          </span>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {programMetrics.map((program) => (
+            <article key={program.id} className="flex min-w-0 items-center justify-between gap-4 rounded-lg border border-brand-navy/10 bg-surface-white p-4 shadow-lg shadow-brand-navy/5">
+              <div className="min-w-0">
+                <p className="break-words text-sm font-extrabold leading-5 text-brand-navy">{program.label}</p>
+                <p className="mt-2 font-heading text-3xl font-semibold text-brand-navy">{program.count}</p>
+                <p className="text-xs font-bold text-brand-navy/45">{program.count === 1 ? "lead" : "leads"}</p>
+              </div>
+              <span className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-blue text-white">
+                <UserRoundPlus size={20} aria-hidden />
+              </span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-xl border border-brand-navy/10 bg-surface-white shadow-xl shadow-brand-navy/6">
+        <TableHeader
+          kicker="CRM Leads"
+          title="People who filled out the form"
+          search={search}
+          setSearch={setSearch}
+          buttonLabel="Add Lead"
+          onAdd={onAdd}
+        >
+          <AdminFilterSelect
+            label="Status"
+            value={statusFilter}
+            options={["All", ...leadStatuses]}
+            onChange={(value) =>
+              setStatusFilter(value as "All" | LeadStatus)
+            }
+          />
+        </TableHeader>
+
+        <div className="grid gap-3 border-t border-brand-navy/10 p-3 md:hidden">
         {leads.map((lead) => (
           <button
             key={lead.id}
@@ -1262,9 +1311,9 @@ function LeadsView({
             </div>
           </button>
         ))}
-      </div>
+        </div>
 
-      <div className="hidden overflow-x-auto md:block">
+        <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[64rem] border-t border-brand-navy/10 text-left">
           <thead className="bg-brand-navy text-xs font-extrabold uppercase tracking-[0.08em] text-white/62">
             <tr>
@@ -1338,8 +1387,9 @@ function LeadsView({
             ))}
           </tbody>
         </table>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   );
 }
 
