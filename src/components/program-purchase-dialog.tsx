@@ -57,7 +57,7 @@ const copy = {
     saving: "Guardando...",
     proofTitle: "Cargue su comprobante de pago",
     proofBody: "Realice el pago usando los datos indicados y, sin cerrar esta ventana, cargue una captura de la transferencia o una foto del depósito.",
-    chooseFile: "Captura, foto o PDF",
+    chooseFile: "Subir foto o captura",
     fileHelp: "JPG, PNG, WEBP, HEIC o PDF. Máximo 10 MB.",
     upload: "Enviar comprobante",
     uploading: "Enviando...",
@@ -101,7 +101,7 @@ const copy = {
     saving: "Saving...",
     proofTitle: "Upload your payment receipt",
     proofBody: "Make the payment using the details shown, then keep this window open and upload a transfer screenshot or a photo of the deposit receipt.",
-    chooseFile: "Screenshot, photo, or PDF",
+    chooseFile: "Upload a photo or screenshot",
     fileHelp: "JPG, PNG, WEBP, HEIC, or PDF. Maximum 10 MB.",
     upload: "Submit Payment Proof",
     uploading: "Uploading...",
@@ -353,7 +353,7 @@ export function ProgramPurchaseDialog({
                   <p className="mt-3 max-w-xl text-sm leading-6 text-brand-navy/64">{c.proofBody}</p>
 
                   <label className="mt-6 block cursor-pointer rounded-lg border-2 border-dashed border-brand-teal/45 bg-surface-cream p-5 text-center transition hover:border-brand-teal hover:bg-brand-teal/8">
-                    <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" capture="environment" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="sr-only" />
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="sr-only" />
                     <FileCheck2 className="mx-auto text-brand-teal" size={28} aria-hidden />
                     <span className="mt-3 block font-extrabold">{file?.name ?? c.chooseFile}</span>
                     <span className="mt-1 block text-xs font-semibold text-brand-navy/45">{c.fileHelp}</span>

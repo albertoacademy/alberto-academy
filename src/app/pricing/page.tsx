@@ -31,7 +31,7 @@ const pricingCopy = {
     policyKicker: "Antes de inscribirse", policyTitle: "Preguntas frecuentes",
     policies: [
       { title: "Conversación inicial gratuita", copy: "Dura hasta una hora y permite orientar su nivel y sus objetivos. No es una clase de prueba.", icon: CalendarCheck },
-      { title: "Pagos", copy: "Se aceptan transferencias y pagos con tarjeta de débito o crédito mediante servicios en línea.", icon: CreditCard },
+      { title: "Pagos", copy: "Se aceptan transferencias bancarias, depósitos directos y pagos por PayPal.", icon: CreditCard },
       { title: "Materiales", copy: "Los libros o materiales base con costo se cotizan por separado antes de confirmar la inscripción.", icon: ShieldCheck },
       { title: "Progreso responsable", copy: "Los resultados dependen de la asistencia, la práctica y la responsabilidad del estudiante.", icon: Clock3 },
       { title: "Reconocimiento al desempeño", copy: "Al finalizar cada nivel, el estudiante con la mejor calificación recibe gratis los materiales del nivel siguiente.", icon: Award },
@@ -50,7 +50,7 @@ const pricingCopy = {
     policyKicker: "Before you enroll", policyTitle: "Important details",
     policies: [
       { title: "Free consultation", copy: "It can last up to one hour and helps identify your level and goals. It is not a trial lesson.", icon: CalendarCheck },
-      { title: "Payments", copy: "Bank transfers and online debit or credit card payments are accepted.", icon: CreditCard },
+      { title: "Payments", copy: "Bank transfers, direct deposits, and PayPal payments are accepted.", icon: CreditCard },
       { title: "Materials", copy: "Paid books or core materials are quoted separately before enrollment is confirmed.", icon: ShieldCheck },
       { title: "Responsible progress", copy: "Results depend on attendance, practice, and each student's consistency.", icon: Clock3 },
       { title: "Performance recognition", copy: "The highest-performing student at each level receives the next level's materials at no cost.", icon: Award },

@@ -1,13 +1,12 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n";
 
 const preferenceKey = "alberto-site-language";
 
 export function LanguageToggle({ locale }: { locale: Locale }) {
   const pathname = usePathname();
-  const router = useRouter();
   const nextLocale: Locale = locale === "es" ? "en" : "es";
 
   function switchLanguage() {
@@ -16,7 +15,7 @@ export function LanguageToggle({ locale }: { locale: Locale }) {
 
     window.localStorage.setItem(preferenceKey, nextLocale);
     document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000; samesite=lax`;
-    router.push(destination);
+    window.location.assign(destination);
   }
 
   return (
