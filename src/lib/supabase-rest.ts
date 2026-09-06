@@ -1,4 +1,4 @@
-import type { Lead, Level, PaymentStatus, Student, StudentStatus } from "@/lib/crm-types";
+import { normalizeStudentProgram, type Lead, type Level, type PaymentStatus, type Student, type StudentStatus } from "@/lib/crm-types";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "") ?? "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -190,6 +190,24 @@ export async function deleteStudentFromSupabase(id: string, accessToken: string)
     method: "DELETE",
     accessToken,
   });
+}
+
+export async function convertLeadToStudentInSupabase(id: string, accessToken: string) {
+  const records = await requestSupabase<StudentRecord[]>(
+    "/rest/v1/rpc/convert_lead_to_student",
+    {
+      method: "POST",
+      accessToken,
+      body: { p_lead_record_id: id },
+    },
+  );
+  const student = records[0];
+
+  if (!student) {
+    throw new Error("Supabase did not return the converted student.");
+  }
+
+  return recordToStudent(student);
 }
 
 export async function submitPublicLead(input: {
@@ -409,7 +427,7 @@ function recordToStudent(record: StudentRecord): Student {
     name: record.full_name,
     email: record.email,
     phone: record.phone ?? "",
-    program: record.program ?? "",
+    program: normalizeStudentProgram(record.program ?? ""),
     status: record.status ?? "Active",
     paymentStatus: record.payment_status ?? "Not required",
     paymentBank: record.payment_bank ?? "",

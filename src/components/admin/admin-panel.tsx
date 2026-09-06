@@ -4,9 +4,10 @@ import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from "re
 import Image from "next/image";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { Lead, LeadStatus, Level, Student, StudentStatus } from "@/lib/crm-types";
-import { publicLeadInterestOptions } from "@/lib/crm-types";
+import { normalizeStudentProgram, publicLeadInterestOptions, studentProgramDefinitions } from "@/lib/crm-types";
 import {
   clearAdminSession,
+  convertLeadToStudentInSupabase,
   createPaymentProofSignedUrl,
   deleteLeadFromSupabase,
   deleteStudentFromSupabase,
@@ -25,9 +26,11 @@ import {
   Building2,
   CalendarDays,
   ChevronRight,
+  Clock3,
   Eye,
   EyeOff,
   FileCheck2,
+  GraduationCap,
   LogOut,
   Mail,
   Pencil,
@@ -121,6 +124,7 @@ export function AdminPanel() {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [leadMode, setLeadMode] = useState<"add" | "edit">("edit");
   const [studentMode, setStudentMode] = useState<"add" | "edit">("edit");
+  const [movingLeadId, setMovingLeadId] = useState<string | null>(null);
   const [syncMessage, setSyncMessage] = useState<string | null>(() =>
     isSupabaseConfigured()
       ? null
@@ -443,6 +447,40 @@ export function AdminPanel() {
     setLeadDraft(null);
   }
 
+  async function moveLeadToStudent(lead: Lead) {
+    if (movingLeadId) {
+      return;
+    }
+
+    if (!window.confirm(`Move ${lead.name} to Active students? The lead will be removed from the Leads list after the student record is created.`)) {
+      return;
+    }
+
+    const accessToken = getAccessToken();
+
+    if (!accessToken) {
+      window.location.href = "/login";
+      return;
+    }
+
+    setMovingLeadId(lead.id);
+
+    try {
+      const student = await convertLeadToStudentInSupabase(lead.id, accessToken);
+      setStudents((current) => [student, ...current]);
+      setLeads((current) => current.filter((item) => item.id !== lead.id));
+      setLeadDraft(null);
+      setSelectedStudentId(student.id);
+      setActiveView("student-detail");
+      setSyncMessage("Lead moved to Active students");
+    } catch (error) {
+      console.error(error);
+      setSyncMessage("Could not move lead. Check whether this email already belongs to a student.");
+    } finally {
+      setMovingLeadId(null);
+    }
+  }
+
   async function deleteStudent(id: string) {
     if (!isSupabaseConfigured()) {
       setSyncMessage(
@@ -659,6 +697,7 @@ export function AdminPanel() {
             {activeView === "students" && (
               <StudentsView
                 students={filteredStudents}
+                allStudents={students}
                 search={studentSearch}
                 setSearch={setStudentSearch}
                 onAdd={openNewStudent}
@@ -692,6 +731,8 @@ export function AdminPanel() {
           onClose={() => setLeadDraft(null)}
           onSave={saveLead}
           onDelete={() => deleteLead(leadDraft.id)}
+          onMoveToStudent={() => void moveLeadToStudent(leadDraft)}
+          isMovingToStudent={movingLeadId === leadDraft.id}
         />
       )}
 
@@ -1305,6 +1346,7 @@ function LeadsView({
 
 function StudentsView({
   students,
+  allStudents,
   search,
   setSearch,
   onAdd,
@@ -1313,6 +1355,7 @@ function StudentsView({
   onDelete,
 }: {
   students: Student[];
+  allStudents: Student[];
   search: string;
   setSearch: (value: string) => void;
   onAdd: () => void;
@@ -1329,8 +1372,72 @@ function StudentsView({
         })
       : "Not provided";
 
+  const programMetrics = useMemo(
+    () => studentProgramDefinitions.map((program) => {
+      const enrolledStudents = allStudents.filter(
+        (student) => normalizeStudentProgram(student.program) === program.label,
+      );
+      const active = enrolledStudents.filter((student) => student.status === "Active").length;
+      const pending = enrolledStudents.filter((student) => student.status === "Pending").length;
+
+      return {
+        ...program,
+        active,
+        pending,
+        current: active + pending,
+      };
+    }),
+    [allStudents],
+  );
+
   return (
-    <section className="overflow-hidden rounded-xl border border-brand-navy/10 bg-surface-white shadow-xl shadow-brand-navy/6">
+    <div className="grid gap-5">
+      <section aria-labelledby="program-enrollment-title">
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <div>
+            <p className="section-kicker">Enrollment snapshot</p>
+            <h2 id="program-enrollment-title" className="mt-1 font-heading text-2xl font-normal text-brand-navy">
+              Students by program
+            </h2>
+          </div>
+          <span className="hidden rounded-md bg-brand-navy px-3 py-2 text-xs font-extrabold uppercase tracking-[0.08em] text-white sm:inline-flex">
+            Active + pending
+          </span>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {programMetrics.map((program) => (
+            <article key={program.id} className="min-w-0 rounded-lg border border-brand-navy/10 bg-surface-white p-4 shadow-lg shadow-brand-navy/5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="break-words text-sm font-extrabold leading-5 text-brand-navy">{program.label}</p>
+                  <p className="mt-1 text-xs font-bold text-brand-navy/45">{program.current} current students</p>
+                </div>
+                <span className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-blue text-white">
+                  <GraduationCap size={20} aria-hidden />
+                </span>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2 border-t border-brand-navy/8 pt-4">
+                <div className="rounded-md bg-brand-teal/10 px-3 py-2.5">
+                  <p className="flex items-center gap-1.5 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-brand-teal">
+                    <UserCheck size={14} aria-hidden /> Active
+                  </p>
+                  <p className="mt-1 font-heading text-2xl font-semibold text-brand-navy">{program.active}</p>
+                </div>
+                <div className="rounded-md bg-brand-red/8 px-3 py-2.5">
+                  <p className="flex items-center gap-1.5 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-brand-red">
+                    <Clock3 size={14} aria-hidden /> Pending
+                  </p>
+                  <p className="mt-1 font-heading text-2xl font-semibold text-brand-navy">{program.pending}</p>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-xl border border-brand-navy/10 bg-surface-white shadow-xl shadow-brand-navy/6">
       <TableHeader
         kicker="Student Profiles"
         title="Student directory"
@@ -1495,7 +1602,8 @@ function StudentsView({
           </tbody>
         </table>
       </div>
-    </section>
+      </section>
+    </div>
   );
 }
 function TableHeader({
@@ -1599,6 +1707,8 @@ function LeadSheet({
   onClose,
   onSave,
   onDelete,
+  onMoveToStudent,
+  isMovingToStudent,
 }: {
   mode: "add" | "edit";
   lead: Lead;
@@ -1606,6 +1716,8 @@ function LeadSheet({
   onClose: () => void;
   onSave: () => void;
   onDelete: () => void;
+  onMoveToStudent: () => void;
+  isMovingToStudent: boolean;
 }) {
   const [isEditing, setIsEditing] = useState(mode === "add");
 
@@ -1622,6 +1734,8 @@ function LeadSheet({
           lead={lead}
           onEdit={() => setIsEditing(true)}
           onDelete={onDelete}
+          onMoveToStudent={onMoveToStudent}
+          isMovingToStudent={isMovingToStudent}
         />
       </DetailShell>
     );
@@ -1935,10 +2049,14 @@ function LeadDetailView({
   lead,
   onEdit,
   onDelete,
+  onMoveToStudent,
+  isMovingToStudent,
 }: {
   lead: Lead;
   onEdit: () => void;
   onDelete: () => void;
+  onMoveToStudent: () => void;
+  isMovingToStudent: boolean;
 }) {
   return (
     <div className="grid gap-4">
@@ -1996,6 +2114,16 @@ function LeadDetailView({
           {lead.notes || "No notes yet."}
         </p>
       </div>
+
+      <button
+        type="button"
+        onClick={onMoveToStudent}
+        disabled={isMovingToStudent}
+        className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-brand-teal px-4 py-3 text-sm font-extrabold text-white transition hover:bg-brand-blue disabled:cursor-wait disabled:opacity-65"
+      >
+        <UserCheck size={18} aria-hidden />
+        {isMovingToStudent ? "Moving to students..." : "Move to active student"}
+      </button>
 
       <DetailActions onEdit={onEdit} onDelete={onDelete} />
     </div>
