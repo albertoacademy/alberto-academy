@@ -26,6 +26,11 @@ export const navItems = spanishNavItems;
 
 const whatsappHref = "https://wa.me/18293528234";
 const emailHref = "mailto:albertoalex0033@gmail.com";
+const socialLinks = [
+  { label: "Facebook", href: "https://www.facebook.com/share/1D2XrbVmDM/", Icon: FacebookIcon },
+  { label: "Instagram", href: "https://www.instagram.com/alberto_academy?igsi=cHZvZHB0M3c1Y3V2", Icon: InstagramIcon },
+  { label: "YouTube", href: "https://youtube.com/@lbertoacademy?si=lC1L9i9rAFJ8aVd9", Icon: YouTubeIcon },
+];
 
 export function SiteHeader({ locale = "es" }: { locale?: Locale }) {
   const isEnglish = locale === "en";
@@ -101,9 +106,16 @@ export function SiteFooter({ locale = "es" }: { locale?: Locale }) {
             {isEnglish ? "Practical Spanish for real conversations, taught online with structure and personal guidance. English instruction is also available." : "Academia de idiomas online para aprender de forma progresiva, comprender el contexto y comunicarse con mayor seguridad."}
           </p>
 
-          <a href={whatsappHref} target="_blank" rel="noreferrer" className="mt-8 inline-flex size-12 items-center justify-center rounded-full bg-white/8 text-white ring-1 ring-white/10 transition hover:bg-brand-teal hover:ring-brand-teal" aria-label={isEnglish ? "Message Alberto Academy on WhatsApp" : "Escribir a Alberto Academy por WhatsApp"}>
-            <MessageCircle size={21} aria-hidden />
-          </a>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="inline-flex size-12 items-center justify-center rounded-full bg-white/8 text-white ring-1 ring-white/10 transition hover:bg-brand-teal hover:ring-brand-teal" aria-label={isEnglish ? "Message Alberto Academy on WhatsApp" : "Escribir a Alberto Academy por WhatsApp"}>
+              <MessageCircle size={21} aria-hidden />
+            </a>
+            {socialLinks.map(({ label, href, Icon }) => (
+              <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="inline-flex size-12 items-center justify-center rounded-full bg-white/8 text-white ring-1 ring-white/10 transition hover:bg-brand-teal hover:ring-brand-teal" aria-label={`${isEnglish ? "Visit Alberto Academy on" : "Visitar Alberto Academy en"} ${label}`}>
+                <Icon />
+              </a>
+            ))}
+          </div>
 
           <div className="mt-9 space-y-3 text-sm font-semibold text-white/76">
             <a href={emailHref} className="flex items-center gap-3 break-all transition hover:text-white"><Mail size={17} className="text-brand-teal-light" aria-hidden />albertoalex0033@gmail.com</a>
@@ -152,5 +164,31 @@ function FooterColumn({ title, links }: { title: string; links: { label: string;
         {links.map((link) => <Link key={link.label} href={link.href} className="transition hover:text-white">{link.label}</Link>)}
       </div>
     </div>
+  );
+}
+
+function FacebookIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
+      <path d="M13.5 22v-9h3l.45-3.5H13.5V7.27c0-1.01.28-1.7 1.73-1.7H17V2.44c-.31-.04-1.38-.13-2.62-.13-2.59 0-4.36 1.58-4.36 4.49v2.7H7v3.5h3.02v9h3.48Z" />
+    </svg>
+  );
+}
+
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.4" cy="6.6" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function YouTubeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
+      <path d="M23.5 6.19a3.01 3.01 0 0 0-2.12-2.13C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.01 3.01 0 0 0 .5 6.19 31.4 31.4 0 0 0 0 12a31.4 31.4 0 0 0 .5 5.81 3.01 3.01 0 0 0 2.12 2.13c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.01 3.01 0 0 0 2.12-2.13A31.4 31.4 0 0 0 24 12a31.4 31.4 0 0 0-.5-5.81ZM9.6 15.6V8.4l6.24 3.6-6.24 3.6Z" />
+    </svg>
   );
 }
