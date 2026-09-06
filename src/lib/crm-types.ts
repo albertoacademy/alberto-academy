@@ -1,5 +1,7 @@
 export type LeadStatus = "New" | "Contacted" | "Trial booked" | "Won" | "Lost";
 export type Level = "Beginner" | "Intermediate" | "Advanced" | "Not sure";
+export type StudentStatus = "Pending" | "Active" | "Paused" | "Completed";
+export type PaymentStatus = "Not required" | "Awaiting proof" | "Proof submitted" | "Confirmed";
 
 export const publicLeadInterestOptions = [
   "Programa de inglés por niveles",
@@ -28,6 +30,12 @@ export type Student = {
   name: string;
   email: string;
   phone: string;
+  program: string;
+  status: StudentStatus;
+  paymentStatus: PaymentStatus;
+  paymentBank: string;
+  paymentProofPath: string;
+  paymentProofName: string;
   startDate: string;
   goals: string;
   notes: string;

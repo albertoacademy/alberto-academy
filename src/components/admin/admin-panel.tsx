@@ -3,10 +3,11 @@
 import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { ThemeToggle } from "@/components/theme-toggle";
-import type { Lead, LeadStatus, Level, Student } from "@/lib/crm-types";
+import type { Lead, LeadStatus, Level, Student, StudentStatus } from "@/lib/crm-types";
 import { publicLeadInterestOptions } from "@/lib/crm-types";
 import {
   clearAdminSession,
+  createPaymentProofSignedUrl,
   deleteLeadFromSupabase,
   deleteStudentFromSupabase,
   getAdminSession,
@@ -20,10 +21,13 @@ import {
 import {
   type LucideIcon,
   ArrowLeft,
+  BadgeCheck,
+  Building2,
   CalendarDays,
   ChevronRight,
   Eye,
   EyeOff,
+  FileCheck2,
   LogOut,
   Mail,
   Pencil,
@@ -54,6 +58,7 @@ const navItems: {
 
 const leadStatuses: LeadStatus[] = ["New", "Contacted", "Trial booked", "Won", "Lost"];
 const levels: Level[] = ["Beginner", "Intermediate", "Advanced", "Not sure"];
+const studentStatuses: StudentStatus[] = ["Pending", "Active", "Paused", "Completed"];
 
 const interests = [
   ...publicLeadInterestOptions,
@@ -92,6 +97,12 @@ const emptyStudent: Student = {
   name: "",
   email: "",
   phone: "",
+  program: "",
+  status: "Active",
+  paymentStatus: "Not required",
+  paymentBank: "",
+  paymentProofPath: "",
+  paymentProofName: "",
   startDate: new Date().toISOString().slice(0, 10),
   goals: "",
   notes: "",
@@ -196,6 +207,10 @@ export function AdminPanel() {
           student.name,
           student.email,
           student.phone,
+          student.program,
+          student.status,
+          student.paymentStatus,
+          student.paymentBank,
           student.startDate,
           student.goals,
           student.notes,
@@ -317,7 +332,22 @@ export function AdminPanel() {
       return;
     }
 
-    const draft = studentDraft;
+    const draft = {
+      ...studentDraft,
+      paymentStatus:
+        studentDraft.status === "Active" && studentDraft.paymentProofPath
+          ? "Confirmed" as const
+          : studentDraft.paymentStatus,
+    };
+
+    if (
+      draft.status === "Active" &&
+      draft.paymentStatus === "Awaiting proof" &&
+      !draft.paymentProofPath
+    ) {
+      setSyncMessage("A pending purchase needs a payment proof before activation");
+      return;
+    }
 
     if (!isSupabaseConfigured()) {
       setSyncMessage(
@@ -355,6 +385,33 @@ export function AdminPanel() {
     } catch (error) {
       console.error(error);
       setSyncMessage("Could not save student to Supabase");
+    }
+  }
+
+  async function activateStudent(student: Student) {
+    if (!student.paymentProofPath) {
+      setSyncMessage("A payment proof is required before activation");
+      return;
+    }
+
+    const accessToken = getAccessToken();
+
+    if (!accessToken) {
+      window.location.href = "/login";
+      return;
+    }
+
+    try {
+      const savedStudent = await saveStudentToSupabase(
+        { ...student, status: "Active", paymentStatus: "Confirmed" },
+        accessToken,
+        "edit",
+      );
+      setStudents((current) => current.map((item) => item.id === savedStudent.id ? savedStudent : item));
+      setSyncMessage("Payment confirmed and student activated");
+    } catch (error) {
+      console.error(error);
+      setSyncMessage("Could not activate student in Supabase");
     }
   }
 
@@ -618,6 +675,7 @@ export function AdminPanel() {
                 student={selectedStudent}
                 onBack={returnToStudents}
                 onEdit={editSelectedStudent}
+                onActivate={() => void activateStudent(selectedStudent)}
                 onDelete={() => confirmStudentDeletion(selectedStudent)}
               />
             )}
@@ -835,13 +893,16 @@ function StudentProfilePage({
   student,
   onBack,
   onEdit,
+  onActivate,
   onDelete,
 }: {
   student: Student;
   onBack: () => void;
   onEdit: () => void;
+  onActivate: () => void;
   onDelete: () => void;
 }) {
+  const [proofError, setProofError] = useState<string | null>(null);
   const initials =
     student.name
       .split(/\s+/)
@@ -858,6 +919,33 @@ function StudentProfilePage({
         year: "numeric",
       })
     : "Not provided";
+
+  async function openPaymentProof() {
+    if (!student.paymentProofPath) return;
+
+    const accessToken = getAdminSession()?.accessToken;
+    if (!accessToken) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const proofWindow = window.open("", "_blank");
+    if (proofWindow) proofWindow.opener = null;
+    setProofError(null);
+
+    try {
+      const signedUrl = await createPaymentProofSignedUrl(student.paymentProofPath, accessToken);
+      if (proofWindow) {
+        proofWindow.location.href = signedUrl;
+      } else {
+        window.location.href = signedUrl;
+      }
+    } catch (error) {
+      console.error(error);
+      proofWindow?.close();
+      setProofError("Could not open the payment proof. Please try again.");
+    }
+  }
 
   return (
     <div className="grid min-w-0 gap-4 lg:gap-5">
@@ -878,21 +966,35 @@ function StudentProfilePage({
             </div>
 
             <div className="min-w-0">
-              <p className="section-kicker-dark">Enrolled student</p>
+              <p className="section-kicker-dark">Student record</p>
               <h2 className="mt-1 break-words font-heading text-3xl font-normal leading-tight sm:text-5xl">
                 {student.name}
               </h2>
               <p className="mt-2 text-sm font-semibold text-white/58">
                 Start date: {startDate}
               </p>
+              <div className="mt-3"><StudentStatusPill status={student.status} /></div>
             </div>
           </div>
 
           <div className="grid w-full gap-2 sm:flex sm:w-auto">
+            {student.status === "Pending" && (
+              <button
+                type="button"
+                onClick={onActivate}
+                disabled={!student.paymentProofPath}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand-red px-5 text-sm font-extrabold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-45"
+                title={student.paymentProofPath ? "Confirm payment and activate student" : "Payment proof is still pending"}
+              >
+                <BadgeCheck size={17} aria-hidden />
+                {student.paymentProofPath ? "Confirm payment & activate" : "Awaiting payment proof"}
+              </button>
+            )}
+
             <button
               type="button"
               onClick={onEdit}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand-red px-5 text-sm font-extrabold text-white transition hover:bg-brand-red-dark"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand-teal px-5 text-sm font-extrabold text-white transition hover:bg-brand-blue"
             >
               <Pencil size={17} aria-hidden />
               Edit student
@@ -916,7 +1018,7 @@ function StudentProfilePage({
             <div>
               <p className="section-kicker">Student details</p>
               <h3 className="mt-1 font-heading text-2xl font-normal">
-                Personal and contact information
+                Personal, enrollment and contact information
               </h3>
             </div>
 
@@ -938,6 +1040,21 @@ function StudentProfilePage({
               href={student.phone ? `tel:${student.phone}` : undefined}
             />
             <StudentInfoRow icon={CalendarDays} label="Start date" value={startDate} />
+            <StudentInfoRow icon={BadgeCheck} label="Program" value={student.program || "Not provided"} />
+            <StudentInfoRow icon={BadgeCheck} label="Status" value={student.status} />
+            {student.paymentBank && <StudentInfoRow icon={Building2} label="Payment bank" value={student.paymentBank} />}
+            {student.paymentStatus !== "Not required" && <StudentInfoRow icon={FileCheck2} label="Payment status" value={student.paymentStatus} />}
+
+            {student.paymentProofPath && (
+              <button type="button" onClick={() => void openPaymentProof()} className="flex min-w-0 items-center gap-3 rounded-lg border border-brand-teal/30 bg-brand-teal/10 p-3 text-left transition hover:border-brand-teal hover:bg-brand-teal/15">
+                <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand-teal text-white"><FileCheck2 size={18} aria-hidden /></span>
+                <span className="min-w-0">
+                  <span className="block text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-brand-navy/42">Payment proof</span>
+                  <span className="mt-1 block break-words text-sm font-extrabold text-brand-navy">{student.paymentProofName || "Open uploaded proof"}</span>
+                </span>
+              </button>
+            )}
+            {proofError && <p className="rounded-md border border-brand-red/25 bg-brand-red/8 px-3 py-2 text-sm font-bold text-brand-red" role="alert">{proofError}</p>}
           </div>
         </section>
 
@@ -1216,7 +1333,7 @@ function StudentsView({
     <section className="overflow-hidden rounded-xl border border-brand-navy/10 bg-surface-white shadow-xl shadow-brand-navy/6">
       <TableHeader
         kicker="Student Profiles"
-        title="Enrolled student directory"
+        title="Student directory"
         search={search}
         setSearch={setSearch}
         buttonLabel="Add Student"
@@ -1241,6 +1358,7 @@ function StudentsView({
                 <p className="mt-1 break-all text-xs font-semibold text-brand-navy/48">
                   {student.email}
                 </p>
+                <div className="mt-2"><StudentStatusPill status={student.status} /></div>
               </div>
               <ChevronRight className="shrink-0 text-brand-navy/34" size={18} aria-hidden />
             </button>
@@ -1253,6 +1371,10 @@ function StudentsView({
               <p>
                 <span className="text-brand-navy/42">Start date: </span>
                 {formatDate(student.startDate)}
+              </p>
+              <p className="break-words">
+                <span className="text-brand-navy/42">Program: </span>
+                {student.program || "Not provided"}
               </p>
               <p className="line-clamp-2 break-words">
                 <span className="text-brand-navy/42">Goals: </span>
@@ -1283,10 +1405,12 @@ function StudentsView({
       </div>
 
       <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[64rem] border-t border-brand-navy/10 text-left">
+        <table className="w-full min-w-[76rem] border-t border-brand-navy/10 text-left">
           <thead className="bg-brand-navy text-xs font-extrabold uppercase tracking-[0.08em] text-white/62">
             <tr>
               <th className="px-4 py-3 lg:px-5">Student</th>
+              <th className="px-4 py-3 lg:px-5">Status</th>
+              <th className="px-4 py-3 lg:px-5">Program</th>
               <th className="px-4 py-3 lg:px-5">Phone</th>
               <th className="px-4 py-3 lg:px-5">Start date</th>
               <th className="px-4 py-3 lg:px-5">Goals</th>
@@ -1307,6 +1431,12 @@ function StudentsView({
                   <span className="mt-1 block text-xs font-semibold text-brand-navy/48">
                     {student.email}
                   </span>
+                </td>
+                <td className="px-4 py-3.5 lg:px-5">
+                  <StudentStatusPill status={student.status} />
+                </td>
+                <td className="max-w-48 px-4 py-3.5 text-sm font-semibold text-brand-navy/58 lg:px-5">
+                  <span className="line-clamp-2">{student.program || "Not provided"}</span>
                 </td>
                 <td className="px-4 py-3.5 text-sm font-semibold text-brand-navy/58 lg:px-5">
                   {student.phone || "Not provided"}
@@ -1662,6 +1792,26 @@ function StudentSheet({
               startDate: value,
             })
           }
+        />
+
+        <StudentField
+          label="Program"
+          value={student.program}
+          onChange={(value) => setStudent({ ...student, program: value })}
+        />
+
+        <LeadSelect
+          label="Status"
+          value={student.status}
+          options={studentStatuses}
+          onChange={(value) => {
+            const status = value as StudentStatus;
+            setStudent({
+              ...student,
+              status,
+              paymentStatus: status === "Active" && student.paymentProofPath ? "Confirmed" : student.paymentStatus,
+            });
+          }}
         />
 
         <div className="sm:col-span-2">
@@ -2064,6 +2214,19 @@ function StudentTextarea({
       />
     </label>
   );
+}
+
+function StudentStatusPill({ status }: { status: StudentStatus }) {
+  const className =
+    status === "Active"
+      ? "border-brand-teal-light/22 bg-brand-teal text-white"
+      : status === "Pending"
+        ? "border-brand-red/22 bg-brand-red text-white"
+        : status === "Completed"
+          ? "border-brand-blue/22 bg-brand-blue text-white"
+          : "border-brand-navy/22 bg-brand-navy text-white";
+
+  return <span className={`inline-flex w-fit items-center justify-center rounded-full border px-3 py-1 text-xs font-extrabold ${className}`}>{status}</span>;
 }
 
 function StatusPill({

@@ -1,4 +1,4 @@
-import type { Lead, Level, Student } from "@/lib/crm-types";
+import type { Lead, Level, PaymentStatus, Student, StudentStatus } from "@/lib/crm-types";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "") ?? "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -37,6 +37,12 @@ type StudentRecord = {
   full_name: string;
   email: string;
   phone: string | null;
+  program: string;
+  status: StudentStatus;
+  payment_status: PaymentStatus;
+  payment_bank: string | null;
+  payment_proof_path: string | null;
+  payment_proof_name: string | null;
   goals: string | null;
   notes: string | null;
   created_at: string;
@@ -212,6 +218,108 @@ export async function submitPublicLead(input: {
   });
 }
 
+export async function submitPublicProgramPurchase(input: {
+  recordId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  program: string;
+  paymentBank: string;
+}) {
+  return requestSupabase<string>("/rest/v1/rpc/submit_program_purchase", {
+    method: "POST",
+    body: {
+      p_record_id: input.recordId,
+      p_full_name: `${input.firstName.trim()} ${input.lastName.trim()}`,
+      p_email: input.email.trim(),
+      p_phone: input.phone.trim(),
+      p_program: input.program,
+      p_payment_bank: input.paymentBank,
+    },
+  });
+}
+
+export async function uploadPublicPaymentProof(input: {
+  recordId: string;
+  email: string;
+  file: File;
+}) {
+  assertSupabaseConfigured();
+
+  const extensionByType: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/heic": "heic",
+    "image/heif": "heif",
+    "application/pdf": "pdf",
+  };
+  const extension = extensionByType[input.file.type];
+
+  if (!extension) {
+    throw new Error("Unsupported payment-proof file type.");
+  }
+
+  const objectPath = `${input.recordId}/${crypto.randomUUID()}.${extension}`;
+  const encodedPath = encodeStoragePath(objectPath);
+  const uploadResponse = await fetch(`${supabaseUrl}/storage/v1/object/payment-proofs/${encodedPath}`, {
+    method: "POST",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
+      "Content-Type": input.file.type,
+      "x-upsert": "false",
+    },
+    body: input.file,
+  });
+
+  if (!uploadResponse.ok) {
+    const message = await uploadResponse.text();
+    throw new Error(message || "Could not upload the payment proof.");
+  }
+
+  const attached = await requestSupabase<boolean>("/rest/v1/rpc/attach_payment_proof", {
+    method: "POST",
+    body: {
+      p_record_id: input.recordId,
+      p_email: input.email.trim(),
+      p_path: objectPath,
+      p_name: input.file.name,
+    },
+  });
+
+  if (!attached) {
+    throw new Error("Could not attach the payment proof to the student record.");
+  }
+}
+
+export async function createPaymentProofSignedUrl(path: string, accessToken: string) {
+  const response = await requestSupabase<{ signedURL?: string; signedUrl?: string }>(
+    `/storage/v1/object/sign/payment-proofs/${encodeStoragePath(path)}`,
+    {
+      method: "POST",
+      accessToken,
+      body: { expiresIn: 300 },
+    },
+  );
+  const signedPath = response.signedURL ?? response.signedUrl;
+
+  if (!signedPath) {
+    throw new Error("Supabase did not return a payment-proof URL.");
+  }
+
+  if (signedPath.startsWith("http")) {
+    return signedPath;
+  }
+
+  if (signedPath.startsWith("/storage/v1/")) {
+    return `${supabaseUrl}${signedPath}`;
+  }
+
+  return `${supabaseUrl}/storage/v1${signedPath.startsWith("/") ? signedPath : `/${signedPath}`}`;
+}
+
 async function requestSupabase<T>(
   path: string,
   options: {
@@ -257,6 +365,10 @@ function assertSupabaseConfigured() {
   }
 }
 
+function encodeStoragePath(path: string) {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
 function normalizeLevel(value: string): Level {
   return value === "Beginner" || value === "Intermediate" || value === "Advanced" ? value : "Not sure";
 }
@@ -297,6 +409,12 @@ function recordToStudent(record: StudentRecord): Student {
     name: record.full_name,
     email: record.email,
     phone: record.phone ?? "",
+    program: record.program ?? "",
+    status: record.status ?? "Active",
+    paymentStatus: record.payment_status ?? "Not required",
+    paymentBank: record.payment_bank ?? "",
+    paymentProofPath: record.payment_proof_path ?? "",
+    paymentProofName: record.payment_proof_name ?? "",
     startDate: record.created_at?.slice(0, 10) ?? "",
     goals: record.goals ?? "",
     notes: record.notes ?? "",
@@ -309,6 +427,12 @@ function studentToRecord(student: Student): StudentRecord {
     full_name: student.name,
     email: student.email,
     phone: student.phone || null,
+    program: student.program || "Not specified",
+    status: student.status,
+    payment_status: student.paymentStatus,
+    payment_bank: student.paymentBank || null,
+    payment_proof_path: student.paymentProofPath || null,
+    payment_proof_name: student.paymentProofName || null,
     goals: student.goals || null,
     notes: student.notes || null,
     created_at: student.startDate
