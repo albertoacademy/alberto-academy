@@ -12,6 +12,7 @@ import {
   LoaderCircle,
   LockKeyhole,
   Upload,
+  WalletCards,
   X,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
@@ -21,10 +22,11 @@ import {
   uploadPublicPaymentProof,
 } from "@/lib/supabase-rest";
 
-const banks = [
-  { name: "Banreservas", typeEs: "Ahorro", typeEn: "Savings", account: "9602981318" },
-  { name: "Popular", typeEs: "Corriente", typeEn: "Checking", account: "828972406" },
-  { name: "BHD", typeEs: "Personal / Ahorro", typeEn: "Personal / savings", account: "33373450013" },
+const paymentOptions = [
+  { kind: "bank", name: "Banreservas", typeEs: "Ahorro", typeEn: "Savings", account: "9602981318", holder: "Alberto Alexander Sosa Dominguez" },
+  { kind: "bank", name: "Popular", typeEs: "Corriente", typeEn: "Checking", account: "828972406", holder: "Alberto Alexander Sosa Dominguez" },
+  { kind: "bank", name: "BHD", typeEs: "Personal / Ahorro", typeEn: "Personal / savings", account: "33373450013", holder: "Alberto Alexander Sosa Dominguez" },
+  { kind: "paypal", name: "PayPal", typeEs: "Pago digital", typeEn: "Digital payment", email: "albertoalex0033@gmail.com", phone: "+1 (829) 352-8234", holder: "Alberto Sosa Dominguez" },
 ] as const;
 
 const copy = {
@@ -33,21 +35,24 @@ const copy = {
     eyebrow: "Inscripción y pago",
     title: "Complete su inscripción",
     intro: "Reserve su programa y envíe el comprobante para que Alberto Academy pueda confirmar su pago.",
-    stepDetails: "1. Datos y banco",
+    stepDetails: "1. Datos y pago",
     stepProof: "2. Comprobante",
     stepDone: "Solicitud completada",
     program: "Programa seleccionado",
     processTitle: "Cómo completar su compra",
     process: [
-      "Complete sus datos y elija uno de los bancos disponibles.",
-      "Realice una transferencia o depósito a la cuenta seleccionada.",
+      "Complete sus datos y elija uno de los métodos de pago disponibles.",
+      "Realice una transferencia, un depósito directo o envíe el pago por PayPal.",
       "Mantenga esta ventana abierta y cargue una captura o foto del comprobante.",
       "Alberto Academy verificará el pago y activará su inscripción.",
     ],
-    bankTitle: "Elija el banco para pagar",
+    bankTitle: "Elija cómo pagar",
     accountType: "Tipo de cuenta",
     accountNumber: "Número de cuenta",
+    paypalEmail: "Correo de PayPal",
+    paypalPhone: "Teléfono de PayPal",
     holder: "Titular",
+    copy: "Copiar",
     copied: "Copiado",
     firstName: "Nombre",
     lastName: "Apellido",
@@ -56,7 +61,7 @@ const copy = {
     continue: "Continuar al pago",
     saving: "Guardando...",
     proofTitle: "Cargue su comprobante de pago",
-    proofBody: "Realice el pago usando los datos indicados y, sin cerrar esta ventana, cargue una captura de la transferencia o una foto del depósito.",
+    proofBody: "Realice el pago usando los datos indicados y, sin cerrar esta ventana, cargue una captura de la transferencia, depósito o pago por PayPal.",
     chooseFile: "Subir foto o captura",
     fileHelp: "JPG, PNG, WEBP, HEIC o PDF. Máximo 10 MB.",
     upload: "Enviar comprobante",
@@ -77,21 +82,24 @@ const copy = {
     eyebrow: "Enrollment and payment",
     title: "Complete your enrollment",
     intro: "Reserve your program and send your payment receipt so Alberto Academy can confirm your enrollment.",
-    stepDetails: "1. Details and bank",
+    stepDetails: "1. Details and payment",
     stepProof: "2. Payment proof",
     stepDone: "Request completed",
     program: "Selected program",
     processTitle: "How to complete your purchase",
     process: [
-      "Enter your details and choose one of the available banks.",
-      "Make a bank transfer or direct deposit to the selected account.",
+      "Enter your details and choose one of the available payment methods.",
+      "Make a bank transfer, direct deposit, or send the payment through PayPal.",
       "Keep this window open and upload a screenshot or photo of the receipt.",
       "Alberto Academy will verify the payment and activate your enrollment.",
     ],
-    bankTitle: "Choose a bank for payment",
+    bankTitle: "Choose how to pay",
     accountType: "Account type",
     accountNumber: "Account number",
+    paypalEmail: "PayPal email",
+    paypalPhone: "PayPal phone",
     holder: "Account holder",
+    copy: "Copy",
     copied: "Copied",
     firstName: "First name",
     lastName: "Last name",
@@ -100,7 +108,7 @@ const copy = {
     continue: "Continue to Payment",
     saving: "Saving...",
     proofTitle: "Upload your payment receipt",
-    proofBody: "Make the payment using the details shown, then keep this window open and upload a transfer screenshot or a photo of the deposit receipt.",
+    proofBody: "Make the payment using the details shown, then keep this window open and upload a screenshot of the transfer, deposit, or PayPal payment.",
     chooseFile: "Upload a photo or screenshot",
     fileHelp: "JPG, PNG, WEBP, HEIC, or PDF. Maximum 10 MB.",
     upload: "Submit Payment Proof",
@@ -142,13 +150,13 @@ export function ProgramPurchaseDialog({
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [bankName, setBankName] = useState<(typeof banks)[number]["name"]>(banks[0].name);
+  const [paymentOptionName, setPaymentOptionName] = useState<(typeof paymentOptions)[number]["name"]>(paymentOptions[0].name);
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copiedAccount, setCopiedAccount] = useState<string | null>(null);
+  const [copiedPaymentDetail, setCopiedPaymentDetail] = useState<string | null>(null);
 
-  const selectedBank = banks.find((bank) => bank.name === bankName) ?? banks[0];
+  const selectedPaymentOption = paymentOptions.find((option) => option.name === paymentOptionName) ?? paymentOptions[0];
 
   useEffect(() => {
     if (!isOpen) return;
@@ -174,10 +182,10 @@ export function ProgramPurchaseDialog({
     setLastName("");
     setPhone("");
     setEmail("");
-    setBankName(banks[0].name);
+    setPaymentOptionName(paymentOptions[0].name);
     setFile(null);
     setError(null);
-    setCopiedAccount(null);
+    setCopiedPaymentDetail(null);
     setIsOpen(true);
   }
 
@@ -198,7 +206,7 @@ export function ProgramPurchaseDialog({
     setIsSubmitting(true);
 
     try {
-      await submitPublicProgramPurchase({ recordId, firstName, lastName, phone, email, program, paymentBank: bankName });
+      await submitPublicProgramPurchase({ recordId, firstName, lastName, phone, email, program, paymentBank: paymentOptionName });
       setStage("proof");
     } catch (submissionError) {
       console.error(submissionError);
@@ -230,10 +238,10 @@ export function ProgramPurchaseDialog({
     }
   }
 
-  async function copyAccountNumber() {
-    await navigator.clipboard.writeText(selectedBank.account);
-    setCopiedAccount(selectedBank.account);
-    window.setTimeout(() => setCopiedAccount(null), 1800);
+  async function copyPaymentDetail(value: string) {
+    await navigator.clipboard.writeText(value);
+    setCopiedPaymentDetail(value);
+    window.setTimeout(() => setCopiedPaymentDetail(null), 1800);
   }
 
   return (
@@ -286,18 +294,20 @@ export function ProgramPurchaseDialog({
 
                 <div className="p-5 sm:p-7">
                   <h3 className="font-heading text-2xl font-normal">{c.bankTitle}</h3>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    {banks.map((bank) => {
-                      const isSelected = bank.name === bankName;
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    {paymentOptions.map((option) => {
+                      const isSelected = option.name === paymentOptionName;
                       return (
-                        <label key={bank.name} className={`relative cursor-pointer rounded-lg border p-4 transition ${isSelected ? "border-brand-teal bg-brand-teal/10 ring-2 ring-brand-teal/15" : "border-brand-navy/10 bg-surface-cream hover:border-brand-teal/45"}`}>
-                          <input type="radio" name="payment-bank" value={bank.name} checked={isSelected} onChange={() => setBankName(bank.name)} className="sr-only" />
+                        <label key={option.name} className={`relative cursor-pointer rounded-lg border p-4 transition ${isSelected ? "border-brand-teal bg-brand-teal/10 ring-2 ring-brand-teal/15" : "border-brand-navy/10 bg-surface-cream hover:border-brand-teal/45"}`}>
+                          <input type="radio" name="payment-option" value={option.name} checked={isSelected} onChange={() => setPaymentOptionName(option.name)} className="sr-only" />
                           <span className="flex items-start justify-between gap-3">
-                            <span className={`grid size-9 place-items-center rounded-md ${isSelected ? "bg-brand-teal" : "bg-brand-blue"} text-white`}><Building2 size={18} aria-hidden /></span>
+                            <span className={`grid size-9 place-items-center rounded-md ${isSelected ? "bg-brand-teal" : "bg-brand-blue"} text-white`}>
+                              {option.kind === "paypal" ? <WalletCards size={18} aria-hidden /> : <Building2 size={18} aria-hidden />}
+                            </span>
                             {isSelected && <CheckCircle2 size={19} className="text-brand-teal" aria-hidden />}
                           </span>
-                          <span className="mt-4 block font-extrabold">{bank.name}</span>
-                          <span className="mt-1 block text-xs font-semibold text-brand-navy/48">{isEnglish ? bank.typeEn : bank.typeEs}</span>
+                          <span className="mt-4 block font-extrabold">{option.name}</span>
+                          <span className="mt-1 block text-xs font-semibold text-brand-navy/48">{isEnglish ? option.typeEn : option.typeEs}</span>
                         </label>
                       );
                     })}
@@ -323,22 +333,41 @@ export function ProgramPurchaseDialog({
             {stage === "proof" && (
               <form onSubmit={handleProofSubmit} className="grid flex-1 lg:grid-cols-[0.9fr_1.1fr]">
                 <div className="bg-brand-blue p-5 text-white sm:p-7">
-                  <p className="section-kicker-dark">{selectedBank.name}</p>
-                  <h3 className="mt-2 font-heading text-3xl font-normal">{isEnglish ? selectedBank.typeEn : selectedBank.typeEs}</h3>
+                  <p className="section-kicker-dark">{selectedPaymentOption.name}</p>
+                  <h3 className="mt-2 font-heading text-3xl font-normal">{isEnglish ? selectedPaymentOption.typeEn : selectedPaymentOption.typeEs}</h3>
                   <dl className="mt-6 grid gap-4">
-                    <div className="border-t border-white/14 pt-4">
-                      <dt className="text-xs font-extrabold uppercase tracking-[0.08em] text-white/48">{c.accountNumber}</dt>
-                      <dd className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                        <span className="font-heading text-2xl">{selectedBank.account}</span>
-                        <button type="button" onClick={copyAccountNumber} className="inline-flex h-9 items-center gap-2 rounded-md border border-white/16 px-3 text-xs font-extrabold transition hover:bg-white/10" title={c.accountNumber}>
-                          {copiedAccount === selectedBank.account ? <Check size={15} aria-hidden /> : <Copy size={15} aria-hidden />}
-                          {copiedAccount === selectedBank.account ? c.copied : c.accountNumber}
-                        </button>
-                      </dd>
-                    </div>
+                    {selectedPaymentOption.kind === "bank" ? (
+                      <PaymentDetailRow
+                        label={c.accountNumber}
+                        value={selectedPaymentOption.account}
+                        copyLabel={c.copy}
+                        copiedLabel={c.copied}
+                        isCopied={copiedPaymentDetail === selectedPaymentOption.account}
+                        onCopy={copyPaymentDetail}
+                      />
+                    ) : (
+                      <>
+                        <PaymentDetailRow
+                          label={c.paypalEmail}
+                          value={selectedPaymentOption.email}
+                          copyLabel={c.copy}
+                          copiedLabel={c.copied}
+                          isCopied={copiedPaymentDetail === selectedPaymentOption.email}
+                          onCopy={copyPaymentDetail}
+                        />
+                        <PaymentDetailRow
+                          label={c.paypalPhone}
+                          value={selectedPaymentOption.phone}
+                          copyLabel={c.copy}
+                          copiedLabel={c.copied}
+                          isCopied={copiedPaymentDetail === selectedPaymentOption.phone}
+                          onCopy={copyPaymentDetail}
+                        />
+                      </>
+                    )}
                     <div className="border-t border-white/14 pt-4">
                       <dt className="text-xs font-extrabold uppercase tracking-[0.08em] text-white/48">{c.holder}</dt>
-                      <dd className="mt-2 font-bold">Alberto Alexander Sosa Dominguez</dd>
+                      <dd className="mt-2 font-bold">{selectedPaymentOption.holder}</dd>
                     </div>
                     <div className="border-t border-white/14 pt-4">
                       <dt className="text-xs font-extrabold uppercase tracking-[0.08em] text-white/48">{c.program}</dt>
@@ -388,6 +417,40 @@ export function ProgramPurchaseDialog({
         document.body,
       )}
     </>
+  );
+}
+
+function PaymentDetailRow({
+  label,
+  value,
+  copyLabel,
+  copiedLabel,
+  isCopied,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  copyLabel: string;
+  copiedLabel: string;
+  isCopied: boolean;
+  onCopy: (value: string) => Promise<void>;
+}) {
+  return (
+    <div className="border-t border-white/14 pt-4">
+      <dt className="text-xs font-extrabold uppercase tracking-[0.08em] text-white/48">{label}</dt>
+      <dd className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <span className="min-w-0 break-all font-heading text-xl sm:text-2xl">{value}</span>
+        <button
+          type="button"
+          onClick={() => void onCopy(value)}
+          className="inline-flex h-9 items-center gap-2 rounded-md border border-white/16 px-3 text-xs font-extrabold transition hover:bg-white/10"
+          title={label}
+        >
+          {isCopied ? <Check size={15} aria-hidden /> : <Copy size={15} aria-hidden />}
+          {isCopied ? copiedLabel : copyLabel}
+        </button>
+      </dd>
+    </div>
   );
 }
 

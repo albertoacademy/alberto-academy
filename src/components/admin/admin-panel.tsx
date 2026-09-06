@@ -1083,7 +1083,7 @@ function StudentProfilePage({
             <StudentInfoRow icon={CalendarDays} label="Start date" value={startDate} />
             <StudentInfoRow icon={BadgeCheck} label="Program" value={student.program || "Not provided"} />
             <StudentInfoRow icon={BadgeCheck} label="Status" value={student.status} />
-            {student.paymentBank && <StudentInfoRow icon={Building2} label="Payment bank" value={student.paymentBank} />}
+            {student.paymentBank && <StudentInfoRow icon={Building2} label="Payment method" value={student.paymentBank} />}
             {student.paymentStatus !== "Not required" && <StudentInfoRow icon={FileCheck2} label="Payment status" value={student.paymentStatus} />}
 
             {student.paymentProofPath && (
