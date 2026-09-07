@@ -252,6 +252,16 @@ export function AdminPanel() {
     });
   }
 
+  function openNewStudentForProgram(program: string) {
+    setStudentMode("add");
+
+    setStudentDraft({
+      ...emptyStudent,
+      id: `ST-${String(students.length + 1).padStart(3, "0")}`,
+      program,
+    });
+  }
+
   function openStudentProfile(student: Student) {
     setSelectedStudentId(student.id);
     setActiveView("student-detail");
@@ -681,7 +691,6 @@ export function AdminPanel() {
             {activeView === "leads" && (
               <LeadsView
                 leads={filteredLeads}
-                allLeads={leads}
                 search={leadSearch}
                 setSearch={setLeadSearch}
                 statusFilter={leadStatusFilter}
@@ -701,6 +710,7 @@ export function AdminPanel() {
                 search={studentSearch}
                 setSearch={setStudentSearch}
                 onAdd={openNewStudent}
+                onAddForProgram={openNewStudentForProgram}
                 onOpen={(student) => {
                   openStudentProfile(student);
                 }}
@@ -1171,7 +1181,6 @@ function StudentInfoRow({
 }
 function LeadsView({
   leads,
-  allLeads,
   search,
   setSearch,
   statusFilter,
@@ -1180,7 +1189,6 @@ function LeadsView({
   onOpen,
 }: {
   leads: Lead[];
-  allLeads: Lead[];
   search: string;
   setSearch: (value: string) => void;
   statusFilter: "All" | LeadStatus;
@@ -1188,73 +1196,27 @@ function LeadsView({
   onAdd: () => void;
   onOpen: (lead: Lead) => void;
 }) {
-  const programMetrics = useMemo(
-    () => publicLeadInterestOptions.map((interest, index) => {
-      const program = studentProgramDefinitions[index];
-      const count = allLeads.filter(
-        (lead) => normalizeStudentProgram(lead.interest) === program.label,
-      ).length;
-
-      return {
-        id: program.id,
-        label: interest,
-        count,
-      };
-    }),
-    [allLeads],
-  );
-
   return (
-    <div className="grid gap-5">
-      <section aria-labelledby="lead-program-title">
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <div>
-            <p className="section-kicker">Lead snapshot</p>
-            <h2 id="lead-program-title" className="mt-1 font-heading text-2xl font-normal text-brand-navy">
-              Leads by program
-            </h2>
-          </div>
-          <span className="hidden rounded-md bg-brand-navy px-3 py-2 text-xs font-extrabold uppercase tracking-[0.08em] text-white sm:inline-flex">
-            All lead statuses
-          </span>
-        </div>
+    <section className="overflow-hidden rounded-xl border border-brand-navy/10 bg-surface-white shadow-xl shadow-brand-navy/6">
+      <TableHeader
+        kicker="CRM Leads"
+        title="People who filled out the form"
+        search={search}
+        setSearch={setSearch}
+        buttonLabel="Add Lead"
+        onAdd={onAdd}
+      >
+        <AdminFilterSelect
+          label="Status"
+          value={statusFilter}
+          options={["All", ...leadStatuses]}
+          onChange={(value) =>
+            setStatusFilter(value as "All" | LeadStatus)
+          }
+        />
+      </TableHeader>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {programMetrics.map((program) => (
-            <article key={program.id} className="flex min-w-0 items-center justify-between gap-4 rounded-lg border border-brand-navy/10 bg-surface-white p-4 shadow-lg shadow-brand-navy/5">
-              <div className="min-w-0">
-                <p className="break-words text-sm font-extrabold leading-5 text-brand-navy">{program.label}</p>
-                <p className="mt-2 font-heading text-3xl font-semibold text-brand-navy">{program.count}</p>
-                <p className="text-xs font-bold text-brand-navy/45">{program.count === 1 ? "lead" : "leads"}</p>
-              </div>
-              <span className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-blue text-white">
-                <UserRoundPlus size={20} aria-hidden />
-              </span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="overflow-hidden rounded-xl border border-brand-navy/10 bg-surface-white shadow-xl shadow-brand-navy/6">
-        <TableHeader
-          kicker="CRM Leads"
-          title="People who filled out the form"
-          search={search}
-          setSearch={setSearch}
-          buttonLabel="Add Lead"
-          onAdd={onAdd}
-        >
-          <AdminFilterSelect
-            label="Status"
-            value={statusFilter}
-            options={["All", ...leadStatuses]}
-            onChange={(value) =>
-              setStatusFilter(value as "All" | LeadStatus)
-            }
-          />
-        </TableHeader>
-
-        <div className="grid gap-3 border-t border-brand-navy/10 p-3 md:hidden">
+      <div className="grid gap-3 border-t border-brand-navy/10 p-3 md:hidden">
         {leads.map((lead) => (
           <button
             key={lead.id}
@@ -1311,9 +1273,9 @@ function LeadsView({
             </div>
           </button>
         ))}
-        </div>
+      </div>
 
-        <div className="hidden overflow-x-auto md:block">
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[64rem] border-t border-brand-navy/10 text-left">
           <thead className="bg-brand-navy text-xs font-extrabold uppercase tracking-[0.08em] text-white/62">
             <tr>
@@ -1387,9 +1349,8 @@ function LeadsView({
             ))}
           </tbody>
         </table>
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }
 
@@ -1399,6 +1360,7 @@ function StudentsView({
   search,
   setSearch,
   onAdd,
+  onAddForProgram,
   onOpen,
   onEdit,
   onDelete,
@@ -1408,18 +1370,12 @@ function StudentsView({
   search: string;
   setSearch: (value: string) => void;
   onAdd: () => void;
+  onAddForProgram: (program: string) => void;
   onOpen: (student: Student) => void;
   onEdit: (student: Student) => void;
   onDelete: (student: Student) => void;
 }) {
-  const formatDate = (value: string) =>
-    value
-      ? new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
-      : "Not provided";
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
 
   const programMetrics = useMemo(
     () => studentProgramDefinitions.map((program) => {
@@ -1439,6 +1395,13 @@ function StudentsView({
     [allStudents],
   );
 
+  const selectedProgram = programMetrics.find((program) => program.id === selectedProgramId) ?? null;
+  const selectedProgramStudents = selectedProgram
+    ? allStudents.filter(
+        (student) => normalizeStudentProgram(student.program) === selectedProgram.label,
+      )
+    : [];
+
   return (
     <div className="grid gap-5">
       <section aria-labelledby="program-enrollment-title">
@@ -1456,13 +1419,19 @@ function StudentsView({
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {programMetrics.map((program) => (
-            <article key={program.id} className="min-w-0 rounded-lg border border-brand-navy/10 bg-surface-white p-4 shadow-lg shadow-brand-navy/5">
+            <button
+              key={program.id}
+              type="button"
+              onClick={() => setSelectedProgramId(program.id)}
+              aria-haspopup="dialog"
+              className="group min-w-0 rounded-lg border border-brand-navy/10 bg-surface-white p-4 text-left shadow-lg shadow-brand-navy/5 transition hover:-translate-y-0.5 hover:border-brand-teal/45 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-teal/20"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="break-words text-sm font-extrabold leading-5 text-brand-navy">{program.label}</p>
                   <p className="mt-1 text-xs font-bold text-brand-navy/45">{program.current} current students</p>
                 </div>
-                <span className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-blue text-white">
+                <span className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-blue text-white transition group-hover:bg-brand-teal">
                   <GraduationCap size={20} aria-hidden />
                 </span>
               </div>
@@ -1481,7 +1450,11 @@ function StudentsView({
                   <p className="mt-1 font-heading text-2xl font-semibold text-brand-navy">{program.pending}</p>
                 </div>
               </div>
-            </article>
+              <span className="mt-4 flex items-center justify-between border-t border-brand-navy/8 pt-3 text-xs font-extrabold text-brand-blue">
+                View students
+                <ChevronRight size={16} className="transition group-hover:translate-x-0.5" aria-hidden />
+              </span>
+            </button>
           ))}
         </div>
       </section>
@@ -1526,7 +1499,7 @@ function StudentsView({
               </p>
               <p>
                 <span className="text-brand-navy/42">Start date: </span>
-                {formatDate(student.startDate)}
+                {formatStudentDate(student.startDate)}
               </p>
               <p className="break-words">
                 <span className="text-brand-navy/42">Program: </span>
@@ -1598,7 +1571,7 @@ function StudentsView({
                   {student.phone || "Not provided"}
                 </td>
                 <td className="whitespace-nowrap px-4 py-3.5 text-sm font-semibold text-brand-navy/58 lg:px-5">
-                  {formatDate(student.startDate)}
+                  {formatStudentDate(student.startDate)}
                 </td>
                 <td className="max-w-56 px-4 py-3.5 text-sm font-semibold text-brand-navy/62 lg:px-5">
                   <span className="line-clamp-2">{student.goals || "No goals added"}</span>
@@ -1652,9 +1625,187 @@ function StudentsView({
         </table>
       </div>
       </section>
+
+      {selectedProgram && (
+        <ProgramStudentsSheet
+          program={selectedProgram.label}
+          students={selectedProgramStudents}
+          onClose={() => setSelectedProgramId(null)}
+          onAdd={() => onAddForProgram(selectedProgram.label)}
+          onOpen={onOpen}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      )}
     </div>
   );
 }
+
+function ProgramStudentsSheet({
+  program,
+  students,
+  onClose,
+  onAdd,
+  onOpen,
+  onEdit,
+  onDelete,
+}: {
+  program: string;
+  students: Student[];
+  onClose: () => void;
+  onAdd: () => void;
+  onOpen: (student: Student) => void;
+  onEdit: (student: Student) => void;
+  onDelete: (student: Student) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const query = search.trim().toLocaleLowerCase("en");
+  const filteredStudents = students.filter(
+    (student) => !query || [student.name, student.email, student.phone, student.status, student.goals, student.notes]
+      .some((value) => value.toLocaleLowerCase("en").includes(query)),
+  );
+  const activeCount = students.filter((student) => student.status === "Active").length;
+  const pendingCount = students.filter((student) => student.status === "Pending").length;
+
+  return (
+    <DetailShell
+      title={program}
+      subtitle="Program students"
+      onClose={onClose}
+      variant="wide"
+      density="compact"
+    >
+      <div className="grid gap-4">
+        <div className="flex flex-col gap-4 rounded-lg border border-brand-navy/10 bg-surface-white p-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex min-h-9 items-center gap-2 rounded-md bg-brand-navy px-3 text-xs font-extrabold text-white">
+              <Users size={15} aria-hidden /> {students.length} total
+            </span>
+            <span className="inline-flex min-h-9 items-center gap-2 rounded-md bg-brand-teal/12 px-3 text-xs font-extrabold text-brand-teal">
+              <UserCheck size={15} aria-hidden /> {activeCount} active
+            </span>
+            <span className="inline-flex min-h-9 items-center gap-2 rounded-md bg-brand-red/9 px-3 text-xs font-extrabold text-brand-red">
+              <Clock3 size={15} aria-hidden /> {pendingCount} pending
+            </span>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-[minmax(0,18rem)_auto]">
+            <label className="relative min-w-0">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-navy/36" size={18} aria-hidden />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search this program"
+                className="h-11 w-full rounded-md border border-brand-navy/10 bg-surface-cream pl-10 pr-4 text-sm font-semibold text-brand-navy outline-none transition focus:border-brand-teal focus:bg-surface-white focus:ring-4 focus:ring-brand-teal/10"
+              />
+            </label>
+            <button type="button" onClick={onAdd} className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand-red px-4 text-sm font-extrabold text-white transition hover:bg-brand-red-dark">
+              <Plus size={17} aria-hidden /> Add Student
+            </button>
+          </div>
+        </div>
+
+        {filteredStudents.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-brand-navy/16 bg-surface-white px-5 py-12 text-center">
+            <span className="mx-auto grid size-11 place-items-center rounded-md bg-brand-blue text-white"><GraduationCap size={21} aria-hidden /></span>
+            <p className="mt-4 font-heading text-2xl text-brand-navy">No students found</p>
+            <p className="mt-2 text-sm font-semibold text-brand-navy/52">
+              {search ? "Try a different search." : "Add the first student to this program."}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-3 md:hidden">
+              {filteredStudents.map((student) => (
+                <article key={student.id} className="min-w-0 rounded-lg border border-brand-navy/10 bg-surface-white p-3.5">
+                  <button type="button" onClick={() => onOpen(student)} className="flex w-full items-start justify-between gap-3 text-left">
+                    <div className="min-w-0">
+                      <p className="break-words font-extrabold text-brand-navy">{student.name}</p>
+                      <p className="mt-1 break-all text-xs font-semibold text-brand-navy/48">{student.email}</p>
+                      <div className="mt-2"><StudentStatusPill status={student.status} /></div>
+                    </div>
+                    <ChevronRight className="shrink-0 text-brand-navy/34" size={18} aria-hidden />
+                  </button>
+
+                  <div className="mt-3 grid gap-2 border-t border-brand-navy/8 pt-3 text-xs font-bold text-brand-navy/58">
+                    <p className="break-words"><span className="text-brand-navy/42">Phone: </span>{student.phone || "Not provided"}</p>
+                    <p><span className="text-brand-navy/42">Start date: </span>{formatStudentDate(student.startDate)}</p>
+                    <p className="line-clamp-2 break-words"><span className="text-brand-navy/42">Goals: </span>{student.goals || "No goals added"}</p>
+                    <p className="line-clamp-2 break-words"><span className="text-brand-navy/42">Notes: </span>{student.notes || "No notes added"}</p>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-brand-navy/8 pt-3">
+                    <button type="button" onClick={() => onEdit(student)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-brand-navy px-3 text-xs font-extrabold text-white transition hover:bg-brand-blue">
+                      <Pencil size={15} aria-hidden /> Edit
+                    </button>
+                    <button type="button" onClick={() => onDelete(student)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-brand-red px-3 text-xs font-extrabold text-white transition hover:bg-brand-red-dark">
+                      <Trash2 size={15} aria-hidden /> Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="hidden overflow-x-auto rounded-lg border border-brand-navy/10 bg-surface-white md:block">
+              <table className="w-full min-w-[64rem] text-left">
+                <thead className="bg-brand-navy text-xs font-extrabold uppercase tracking-[0.08em] text-white/62">
+                  <tr>
+                    <th className="px-4 py-3">Student</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Phone</th>
+                    <th className="px-4 py-3">Start date</th>
+                    <th className="px-4 py-3">Goals</th>
+                    <th className="px-4 py-3">Notes</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-brand-navy/8">
+                  {filteredStudents.map((student) => (
+                    <tr key={student.id} onClick={() => onOpen(student)} className="cursor-pointer transition hover:bg-surface-cream/80">
+                      <td className="px-4 py-3.5">
+                        <span className="block font-extrabold">{student.name}</span>
+                        <span className="mt-1 block text-xs font-semibold text-brand-navy/48">{student.email}</span>
+                      </td>
+                      <td className="px-4 py-3.5"><StudentStatusPill status={student.status} /></td>
+                      <td className="px-4 py-3.5 text-sm font-semibold text-brand-navy/58">{student.phone || "Not provided"}</td>
+                      <td className="whitespace-nowrap px-4 py-3.5 text-sm font-semibold text-brand-navy/58">{formatStudentDate(student.startDate)}</td>
+                      <td className="max-w-52 px-4 py-3.5 text-sm font-semibold text-brand-navy/62"><span className="line-clamp-2">{student.goals || "No goals added"}</span></td>
+                      <td className="max-w-52 px-4 py-3.5 text-sm font-semibold text-brand-navy/52"><span className="line-clamp-2">{student.notes || "No notes added"}</span></td>
+                      <td className="px-4 py-3.5 text-right">
+                        <div className="inline-flex items-center gap-1.5">
+                          <button type="button" onClick={(event) => { event.stopPropagation(); onOpen(student); }} aria-label={`Open ${student.name}`} title="Open profile" className="inline-grid size-9 place-items-center rounded-md border border-brand-navy/10 text-brand-navy transition hover:border-brand-teal hover:text-brand-blue">
+                            <ChevronRight size={18} aria-hidden />
+                          </button>
+                          <button type="button" onClick={(event) => { event.stopPropagation(); onEdit(student); }} aria-label={`Edit ${student.name}`} title="Edit student" className="inline-grid size-9 place-items-center rounded-md bg-brand-navy text-white transition hover:bg-brand-blue">
+                            <Pencil size={16} aria-hidden />
+                          </button>
+                          <button type="button" onClick={(event) => { event.stopPropagation(); onDelete(student); }} aria-label={`Delete ${student.name}`} title="Delete student" className="inline-grid size-9 place-items-center rounded-md bg-brand-red text-white transition hover:bg-brand-red-dark">
+                            <Trash2 size={16} aria-hidden />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
+    </DetailShell>
+  );
+}
+
+function formatStudentDate(value: string) {
+  return value
+    ? new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "Not provided";
+}
+
 function TableHeader({
   kicker,
   title,
@@ -2026,10 +2177,11 @@ function DetailShell({
   subtitle: string;
   onClose: () => void;
   children: ReactNode;
-  variant: "drawer" | "modal";
+  variant: "drawer" | "modal" | "wide";
   density?: "default" | "compact";
 }) {
   const isDrawer = variant === "drawer";
+  const isWide = variant === "wide";
   const isCompact = density === "compact";
 
   return (
@@ -2043,9 +2195,11 @@ function DetailShell({
       <section
         className={`flex max-h-full w-full flex-col overflow-hidden bg-surface-white shadow-2xl shadow-brand-navy/30 ${
           isDrawer
-            ? isCompact
+          ? isCompact
               ? "h-full max-w-full sm:max-w-[30rem]"
               : "h-full max-w-full sm:max-w-[34rem]"
+            : isWide
+              ? "max-h-[94vh] max-w-6xl rounded-xl"
             : isCompact
               ? "max-h-[94vh] max-w-xl rounded-xl"
               : "max-h-[94vh] max-w-2xl rounded-xl"
