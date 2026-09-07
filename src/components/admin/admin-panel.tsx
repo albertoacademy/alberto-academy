@@ -48,7 +48,10 @@ import {
 type ActiveView =
   | "leads"
   | "students"
+  | "program-students"
   | "student-detail";
+
+type StudentReturnView = "students" | "program-students";
 
 const navItems: {
   label: string;
@@ -122,6 +125,8 @@ export function AdminPanel() {
   const [leadDraft, setLeadDraft] = useState<Lead | null>(null);
   const [studentDraft, setStudentDraft] = useState<Student | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+  const [studentReturnView, setStudentReturnView] = useState<StudentReturnView>("students");
   const [leadMode, setLeadMode] = useState<"add" | "edit">("edit");
   const [studentMode, setStudentMode] = useState<"add" | "edit">("edit");
   const [movingLeadId, setMovingLeadId] = useState<string | null>(null);
@@ -227,12 +232,28 @@ export function AdminPanel() {
     [selectedStudentId, students],
   );
 
+  const selectedProgram = useMemo(
+    () => studentProgramDefinitions.find((program) => program.id === selectedProgramId) ?? null,
+    [selectedProgramId],
+  );
+
+  const selectedProgramStudents = useMemo(
+    () => selectedProgram
+      ? students.filter(
+          (student) => normalizeStudentProgram(student.program) === selectedProgram.label,
+        )
+      : [],
+    [selectedProgram, students],
+  );
+
   const activeViewTitle =
     activeView === "leads"
       ? "Leads"
       : activeView === "students"
         ? "Students"
-        : selectedStudent?.name ?? "Student Profile";
+        : activeView === "program-students"
+          ? selectedProgram?.label ?? "Program Students"
+          : selectedStudent?.name ?? "Student Profile";
 
   function openNewLead() {
     setLeadMode("add");
@@ -262,13 +283,27 @@ export function AdminPanel() {
     });
   }
 
-  function openStudentProfile(student: Student) {
+  function openProgramStudents(programId: string) {
+    setSelectedProgramId(programId);
+    setSelectedStudentId(null);
+    setActiveView("program-students");
+  }
+
+  function openStudentProfile(student: Student, returnView: StudentReturnView = "students") {
+    setStudentReturnView(returnView);
     setSelectedStudentId(student.id);
     setActiveView("student-detail");
   }
 
   function returnToStudents() {
     setActiveView("students");
+    setSelectedStudentId(null);
+    setSelectedProgramId(null);
+    setStudentReturnView("students");
+  }
+
+  function returnFromStudentProfile() {
+    setActiveView(studentReturnView);
     setSelectedStudentId(null);
   }
 
@@ -584,7 +619,7 @@ export function AdminPanel() {
 
               const isActive =
                 activeView === item.view ||
-                (activeView === "student-detail" &&
+                ((activeView === "student-detail" || activeView === "program-students") &&
                   item.view === "students");
 
               return (
@@ -592,9 +627,9 @@ export function AdminPanel() {
                   key={item.label}
                   type="button"
                   onClick={() => {
-                    if (item.view !== "students") {
-                      setSelectedStudentId(null);
-                    }
+                    setSelectedStudentId(null);
+                    setSelectedProgramId(null);
+                    setStudentReturnView("students");
 
                     setActiveView(item.view);
                   }}
@@ -647,11 +682,11 @@ export function AdminPanel() {
                 <div className="grid gap-2 sm:grid-cols-2 md:w-auto">
                   <button
                     type="button"
-                    onClick={returnToStudents}
+                    onClick={returnFromStudentProfile}
                     className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-brand-navy/12 bg-surface-cream px-4 text-sm font-extrabold text-brand-navy transition hover:border-brand-teal hover:bg-surface-white sm:h-11"
                   >
                     <ArrowLeft size={17} aria-hidden />
-                    Students
+                    {studentReturnView === "program-students" ? "Program Students" : "Students"}
                   </button>
 
                   <button
@@ -661,6 +696,26 @@ export function AdminPanel() {
                   >
                     <Pencil size={17} aria-hidden />
                     Edit Profile
+                  </button>
+                </div>
+              ) : activeView === "program-students" && selectedProgram ? (
+                <div className="grid gap-2 sm:grid-cols-2 md:w-auto">
+                  <button
+                    type="button"
+                    onClick={returnToStudents}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-brand-navy/12 bg-surface-cream px-4 text-sm font-extrabold text-brand-navy transition hover:border-brand-teal hover:bg-surface-white sm:h-11"
+                  >
+                    <ArrowLeft size={17} aria-hidden />
+                    All Students
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => openNewStudentForProgram(selectedProgram.label)}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-brand-red px-4 text-sm font-extrabold text-white transition hover:bg-brand-red-dark sm:h-11"
+                  >
+                    <Plus size={17} aria-hidden />
+                    Add Student
                   </button>
                 </div>
               ) : (
@@ -710,7 +765,7 @@ export function AdminPanel() {
                 search={studentSearch}
                 setSearch={setStudentSearch}
                 onAdd={openNewStudent}
-                onAddForProgram={openNewStudentForProgram}
+                onOpenProgram={openProgramStudents}
                 onOpen={(student) => {
                   openStudentProfile(student);
                 }}
@@ -719,10 +774,23 @@ export function AdminPanel() {
               />
             )}
 
+            {activeView === "program-students" && selectedProgram && (
+              <ProgramStudentsPage
+                program={selectedProgram.label}
+                students={selectedProgramStudents}
+                onBack={returnToStudents}
+                onAdd={() => openNewStudentForProgram(selectedProgram.label)}
+                onOpen={(student) => openStudentProfile(student, "program-students")}
+                onEdit={editStudent}
+                onDelete={confirmStudentDeletion}
+              />
+            )}
+
             {activeView === "student-detail" && selectedStudent && (
               <StudentProfilePage
                 student={selectedStudent}
-                onBack={returnToStudents}
+                onBack={returnFromStudentProfile}
+                backLabel={studentReturnView === "program-students" ? "Back to program" : "Back to students"}
                 onEdit={editSelectedStudent}
                 onActivate={() => void activateStudent(selectedStudent)}
                 onDelete={() => confirmStudentDeletion(selectedStudent)}
@@ -943,12 +1011,14 @@ export function AdminLogin({ onEnter }: { onEnter?: () => void }) {
 function StudentProfilePage({
   student,
   onBack,
+  backLabel,
   onEdit,
   onActivate,
   onDelete,
 }: {
   student: Student;
   onBack: () => void;
+  backLabel: string;
   onEdit: () => void;
   onActivate: () => void;
   onDelete: () => void;
@@ -1007,7 +1077,7 @@ function StudentProfilePage({
           className="inline-flex h-9 items-center gap-2 rounded-md border border-white/12 px-3 text-xs font-extrabold text-white/70 transition hover:bg-white/10 hover:text-white"
         >
           <ArrowLeft size={16} aria-hidden />
-          Back to students
+          {backLabel}
         </button>
 
         <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -1360,7 +1430,7 @@ function StudentsView({
   search,
   setSearch,
   onAdd,
-  onAddForProgram,
+  onOpenProgram,
   onOpen,
   onEdit,
   onDelete,
@@ -1370,13 +1440,11 @@ function StudentsView({
   search: string;
   setSearch: (value: string) => void;
   onAdd: () => void;
-  onAddForProgram: (program: string) => void;
+  onOpenProgram: (programId: string) => void;
   onOpen: (student: Student) => void;
   onEdit: (student: Student) => void;
   onDelete: (student: Student) => void;
 }) {
-  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
-
   const programMetrics = useMemo(
     () => studentProgramDefinitions.map((program) => {
       const enrolledStudents = allStudents.filter(
@@ -1394,13 +1462,6 @@ function StudentsView({
     }),
     [allStudents],
   );
-
-  const selectedProgram = programMetrics.find((program) => program.id === selectedProgramId) ?? null;
-  const selectedProgramStudents = selectedProgram
-    ? allStudents.filter(
-        (student) => normalizeStudentProgram(student.program) === selectedProgram.label,
-      )
-    : [];
 
   return (
     <div className="grid gap-5">
@@ -1422,8 +1483,7 @@ function StudentsView({
             <button
               key={program.id}
               type="button"
-              onClick={() => setSelectedProgramId(program.id)}
-              aria-haspopup="dialog"
+              onClick={() => onOpenProgram(program.id)}
               className="group min-w-0 rounded-lg border border-brand-navy/10 bg-surface-white p-4 text-left shadow-lg shadow-brand-navy/5 transition hover:-translate-y-0.5 hover:border-brand-teal/45 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-teal/20"
             >
               <div className="flex items-start justify-between gap-3">
@@ -1626,25 +1686,14 @@ function StudentsView({
       </div>
       </section>
 
-      {selectedProgram && (
-        <ProgramStudentsSheet
-          program={selectedProgram.label}
-          students={selectedProgramStudents}
-          onClose={() => setSelectedProgramId(null)}
-          onAdd={() => onAddForProgram(selectedProgram.label)}
-          onOpen={onOpen}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      )}
     </div>
   );
 }
 
-function ProgramStudentsSheet({
+function ProgramStudentsPage({
   program,
   students,
-  onClose,
+  onBack,
   onAdd,
   onOpen,
   onEdit,
@@ -1652,7 +1701,7 @@ function ProgramStudentsSheet({
 }: {
   program: string;
   students: Student[];
-  onClose: () => void;
+  onBack: () => void;
   onAdd: () => void;
   onOpen: (student: Student) => void;
   onEdit: (student: Student) => void;
@@ -1668,45 +1717,57 @@ function ProgramStudentsSheet({
   const pendingCount = students.filter((student) => student.status === "Pending").length;
 
   return (
-    <DetailShell
-      title={program}
-      subtitle="Program students"
-      onClose={onClose}
-      variant="wide"
-      density="compact"
-    >
-      <div className="grid gap-4">
-        <div className="flex flex-col gap-4 rounded-lg border border-brand-navy/10 bg-surface-white p-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex min-h-9 items-center gap-2 rounded-md bg-brand-navy px-3 text-xs font-extrabold text-white">
-              <Users size={15} aria-hidden /> {students.length} total
-            </span>
-            <span className="inline-flex min-h-9 items-center gap-2 rounded-md bg-brand-teal/12 px-3 text-xs font-extrabold text-brand-teal">
-              <UserCheck size={15} aria-hidden /> {activeCount} active
-            </span>
-            <span className="inline-flex min-h-9 items-center gap-2 rounded-md bg-brand-red/9 px-3 text-xs font-extrabold text-brand-red">
-              <Clock3 size={15} aria-hidden /> {pendingCount} pending
-            </span>
+    <div className="grid min-w-0 gap-4 lg:gap-5">
+      <section className="overflow-hidden rounded-xl bg-brand-navy p-4 text-white shadow-xl shadow-brand-navy/12 sm:p-6">
+        <button type="button" onClick={onBack} className="inline-flex h-9 items-center gap-2 rounded-md border border-white/12 px-3 text-xs font-extrabold text-white/70 transition hover:bg-white/10 hover:text-white">
+          <ArrowLeft size={16} aria-hidden /> Back to all students
+        </button>
+
+        <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <p className="section-kicker-dark">Program directory</p>
+            <h2 className="mt-1 break-words font-heading text-3xl font-normal leading-tight sm:text-5xl">{program}</h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="inline-flex min-h-9 items-center gap-2 rounded-md bg-white/[0.09] px-3 text-xs font-extrabold text-white">
+                <Users size={15} aria-hidden /> {students.length} total
+              </span>
+              <span className="inline-flex min-h-9 items-center gap-2 rounded-md bg-brand-teal px-3 text-xs font-extrabold text-white">
+                <UserCheck size={15} aria-hidden /> {activeCount} active
+              </span>
+              <span className="inline-flex min-h-9 items-center gap-2 rounded-md bg-brand-red px-3 text-xs font-extrabold text-white">
+                <Clock3 size={15} aria-hidden /> {pendingCount} pending
+              </span>
+            </div>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-[minmax(0,18rem)_auto]">
-            <label className="relative min-w-0">
-              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-navy/36" size={18} aria-hidden />
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search this program"
-                className="h-11 w-full rounded-md border border-brand-navy/10 bg-surface-cream pl-10 pr-4 text-sm font-semibold text-brand-navy outline-none transition focus:border-brand-teal focus:bg-surface-white focus:ring-4 focus:ring-brand-teal/10"
-              />
-            </label>
-            <button type="button" onClick={onAdd} className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand-red px-4 text-sm font-extrabold text-white transition hover:bg-brand-red-dark">
-              <Plus size={17} aria-hidden /> Add Student
-            </button>
+          <button type="button" onClick={onAdd} className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-red px-5 text-sm font-extrabold text-white transition hover:bg-brand-red-dark sm:w-auto">
+            <Plus size={17} aria-hidden /> Add Student
+          </button>
+        </div>
+      </section>
+
+      <section className="min-w-0 overflow-hidden rounded-xl border border-brand-navy/10 bg-surface-white shadow-xl shadow-brand-navy/6">
+        <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-wrap gap-2">
+            <div>
+              <p className="section-kicker">Student profiles</p>
+              <h3 className="mt-1 font-heading text-2xl font-normal text-brand-navy">Students in this program</h3>
+            </div>
           </div>
+
+          <label className="relative min-w-0 lg:w-72">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-navy/36" size={18} aria-hidden />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search this program"
+              className="h-11 w-full rounded-md border border-brand-navy/10 bg-surface-cream pl-10 pr-4 text-sm font-semibold text-brand-navy outline-none transition focus:border-brand-teal focus:bg-surface-white focus:ring-4 focus:ring-brand-teal/10"
+            />
+          </label>
         </div>
 
         {filteredStudents.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-brand-navy/16 bg-surface-white px-5 py-12 text-center">
+          <div className="border-t border-dashed border-brand-navy/16 bg-surface-white px-5 py-12 text-center">
             <span className="mx-auto grid size-11 place-items-center rounded-md bg-brand-blue text-white"><GraduationCap size={21} aria-hidden /></span>
             <p className="mt-4 font-heading text-2xl text-brand-navy">No students found</p>
             <p className="mt-2 text-sm font-semibold text-brand-navy/52">
@@ -1715,7 +1776,7 @@ function ProgramStudentsSheet({
           </div>
         ) : (
           <>
-            <div className="grid gap-3 md:hidden">
+            <div className="grid gap-3 border-t border-brand-navy/10 p-3 md:hidden">
               {filteredStudents.map((student) => (
                 <article key={student.id} className="min-w-0 rounded-lg border border-brand-navy/10 bg-surface-white p-3.5">
                   <button type="button" onClick={() => onOpen(student)} className="flex w-full items-start justify-between gap-3 text-left">
@@ -1746,7 +1807,7 @@ function ProgramStudentsSheet({
               ))}
             </div>
 
-            <div className="hidden overflow-x-auto rounded-lg border border-brand-navy/10 bg-surface-white md:block">
+            <div className="hidden overflow-x-auto border-t border-brand-navy/10 bg-surface-white md:block">
               <table className="w-full min-w-[64rem] text-left">
                 <thead className="bg-brand-navy text-xs font-extrabold uppercase tracking-[0.08em] text-white/62">
                   <tr>
@@ -1791,8 +1852,8 @@ function ProgramStudentsSheet({
             </div>
           </>
         )}
-      </div>
-    </DetailShell>
+      </section>
+    </div>
   );
 }
 
@@ -2177,11 +2238,10 @@ function DetailShell({
   subtitle: string;
   onClose: () => void;
   children: ReactNode;
-  variant: "drawer" | "modal" | "wide";
+  variant: "drawer" | "modal";
   density?: "default" | "compact";
 }) {
   const isDrawer = variant === "drawer";
-  const isWide = variant === "wide";
   const isCompact = density === "compact";
 
   return (
@@ -2195,11 +2255,9 @@ function DetailShell({
       <section
         className={`flex max-h-full w-full flex-col overflow-hidden bg-surface-white shadow-2xl shadow-brand-navy/30 ${
           isDrawer
-          ? isCompact
+            ? isCompact
               ? "h-full max-w-full sm:max-w-[30rem]"
               : "h-full max-w-full sm:max-w-[34rem]"
-            : isWide
-              ? "max-h-[94vh] max-w-6xl rounded-xl"
             : isCompact
               ? "max-h-[94vh] max-w-xl rounded-xl"
               : "max-h-[94vh] max-w-2xl rounded-xl"
